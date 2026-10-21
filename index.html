@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>상황별 협업 도구</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root {
+  --bg: #f6f7f9; --card: #ffffff; --text: #1f2328; --muted: #656d76; --line: #d8dee4;
+  --accent: #0c66e4; --accent-soft: #e9f2ff; --ok: #1a7f37; --ok-soft: #e6f4ea; --warn: #9a6700; --warn-soft: #fff4d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1216; --card: #171b21; --text: #e6edf3; --muted: #9198a1; --line: #2d333b;
+    --accent: #4c9aff; --accent-soft: #15243a; --ok: #57c26b; --ok-soft: #13261a; --warn: #e3b341; --warn-soft: #2b2310;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1216; --card: #171b21; --text: #e6edf3; --muted: #9198a1; --line: #2d333b;
+  --accent: #4c9aff; --accent-soft: #15243a; --ok: #57c26b; --ok-soft: #13261a; --warn: #e3b341; --warn-soft: #2b2310;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 28px 16px 48px; }
+h1 { font-size: 26px; margin: 0 0 4px; }
+.sub { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+.q { font-weight: bold; margin: 0 0 8px; }
+.builder { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; margin: 0 0 22px; }
+@media (max-width: 760px) { .builder { grid-template-columns: 1fr; } }
+.sels { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.sels label { font-size: 13px; color: var(--muted); font-weight: bold; display: flex; flex-direction: column; gap: 4px; }
+.sels input { font: inherit; font-size: 15px; color: var(--text); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.sels select { font: inherit; font-size: 15px; color: var(--text); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.final { background: var(--accent-soft); border: 2px solid var(--accent); border-radius: 12px; padding: 14px 16px; }
+.final h3 { margin: 0 0 2px; font-size: 17px; }
+.final .why { color: var(--muted); font-size: 13.5px; margin-bottom: 10px; }
+.final table { min-width: 0; background: var(--card); font-size: 14px; }
+.final td.r { color: var(--muted); white-space: nowrap; width: 1%; }
+.final td.c { white-space: nowrap; text-align: right; width: 1%; }
+.final .sum { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 6px; font-size: 15px; }
+.final .sum b { font-size: 20px; }
+.final ul { margin: 6px 0 0; padding-left: 18px; font-size: 13.5px; }
+.final .chk { font-size: 11px; color: var(--warn); background: var(--warn-soft); border-radius: 4px; padding: 0 4px; margin-left: 4px; white-space: nowrap; }
+.combo { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; font-size: 14px; line-height: 1.8; }
+.combo span { color: var(--muted); font-size: 13px; margin-left: 6px; }
+.q .qs { font-weight: normal; color: var(--muted); font-size: 13.5px; margin-left: 6px; }
+.chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 8px; margin-bottom: 20px; }
+.chip { text-align: left; border: 1.5px solid var(--line); background: var(--card); color: var(--text); border-radius: 10px; padding: 10px 12px; cursor: pointer; font: inherit; }
+.chip small { display: block; color: var(--muted); font-size: 12.5px; }
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+.panel h2 { font-size: 20px; margin: 0 0 4px; }
+.pick { display: inline-block; background: var(--accent); color: #fff; border-radius: 6px; padding: 3px 10px; font-weight: bold; margin: 6px 0 14px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+.box { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.box h3 { font-size: 13px; color: var(--muted); margin: 0 0 6px; font-weight: bold; letter-spacing: .02em; }
+.box ul, .box ol { margin: 0; padding-left: 18px; }
+.box li { margin: 3px 0; }
+.box.ai { background: var(--ok-soft); border-color: transparent; }
+.box.ai h3 { color: var(--ok); }
+.box.warn { background: var(--warn-soft); border-color: transparent; }
+.box.warn h3 { color: var(--warn); }
+.cost { font-size: 18px; font-weight: bold; }
+.alt { color: var(--muted); font-size: 13.5px; margin-top: 12px; }
+h2.sec { font-size: 18px; margin: 32px 0 10px; }
+.tbl { width: 100%; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 14px; min-width: 560px; }
+th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+thead th { background: var(--accent); color: #fff; }
+tbody th { white-space: nowrap; }
+.foot { color: var(--muted); font-size: 12.5px; margin-top: 24px; }
+.nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.nav a { color: var(--text); text-decoration: none; border: 1.5px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 16px; font-size: 14.5px; font-weight: bold; }
+.nav a[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.secsub { color: var(--muted); font-size: 14px; margin: -4px 0 12px; }
+.ml { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 12px; }
+.mlc { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+.mlc .shot { display: block; background: #eef1f4; aspect-ratio: 16 / 10; position: relative; }
+.mlc .shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+.mlc .shot span { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: #656d76; font-size: 13px; }
+.mlc .shot.err span { display: flex; }
+.mlc .body { padding: 12px 14px 14px; }
+.mlc h3 { font-size: 17px; margin: 0; }
+.mlc .meta { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
+.mlc .tag { display: inline-block; font-size: 12px; border-radius: 999px; padding: 1px 8px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: 2px; }
+.mlc ul { margin: 0; padding-left: 18px; font-size: 14px; }
+.mlc li { margin: 2px 0; }
+.mlc .ex { margin-top: 8px; font-size: 13.5px; background: var(--ok-soft); border-radius: 8px; padding: 6px 10px; }
+.mlc .ex b { color: var(--ok); }
+.mlc .lnk { margin-top: 8px; font-size: 13px; display: flex; gap: 12px; flex-wrap: wrap; }
+.mlc .lnk a, #linklist a { color: var(--accent); text-decoration: none; font-weight: bold; }
+.mlc .lnk a:hover, #linklist a:hover { text-decoration: underline; }
+#linklist h3 { font-size: 15px; margin: 18px 0 6px; }
+#linklist table { min-width: 0; }
+#linklist td:first-child { font-weight: bold; white-space: nowrap; }
+.mlc .con { margin-top: 6px; font-size: 13.5px; background: var(--warn-soft); border-radius: 8px; padding: 6px 10px; }
+.mlc .con b { color: var(--warn); }
+.mlc .con ul { margin: 2px 0 0; font-size: 13.5px; }
+.shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 10px; margin: 0 0 14px; }
+.shots figure { margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: #eef1f4; }
+.shots .frame { display: block; aspect-ratio: 16 / 9; position: relative; }
+.shots .frame img, .shots .frame svg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.shots .frame span { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: #656d76; font-size: 13px; }
+.shots .frame.err span { display: flex; }
+.shots figcaption { font-size: 12.5px; color: var(--muted); padding: 6px 10px; background: var(--card); border-top: 1px solid var(--line); }
+.price { margin-top: 16px; }
+.price h3 { font-size: 15px; margin: 0 0 8px; }
+.price table { min-width: 0; }
+.price td.n { white-space: nowrap; font-weight: bold; }
+.price .chk { font-size: 11.5px; color: var(--warn); background: var(--warn-soft); border-radius: 4px; padding: 0 5px; margin-left: 4px; white-space: nowrap; }
+.price tr.hl td { background: var(--accent-soft); }
+.price .pnote { color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+/* 보기 개선 */
+body { font-size: 15px; }
+.wrap { max-width: 1120px; padding-top: 0; }
+.top { position: sticky; top: 0; z-index: 20; background: var(--bg); padding: 16px 0 10px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+.top h1 { font-size: 22px; }
+.top .sub { margin-bottom: 10px; }
+.nav { flex-wrap: nowrap; overflow-x: auto; margin-bottom: 0; padding-bottom: 2px; scrollbar-width: thin; }
+.nav a { white-space: nowrap; flex: none; }
+h2.sec { font-size: 19px; margin: 28px 0 6px; }
+.secsub { margin: 0 0 14px; }
+.panel { padding: 22px; }
+.panel h2 { font-size: 22px; }
+.shots { grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); }
+.shots figure { max-width: 520px; }
+.box { background: var(--card); }
+.ml { grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 14px; }
+.mlc .shot { aspect-ratio: 16 / 9; }
+.mlc .body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 2px; }
+.mlc h3 { font-size: 18px; }
+.mlc ul { line-height: 1.6; }
+.mlc .lnk { margin-top: auto; padding-top: 10px; border-top: 1px dashed var(--line); }
+.mlc .body > .lnk { margin-top: 10px; }
+.builder { margin-top: 4px; }
+.final .sum b { font-size: 22px; }
+.foot { border-top: 1px solid var(--line); padding-top: 12px; }
+
+/* ===== 디자인 다듬기 ===== */
+:root {
+  --bg: #f4f6fb; --card: #ffffff; --text: #101828; --muted: #667085; --line: #e4e7ec;
+  --accent: #2f6bff; --accent-soft: #eef3ff; --accent-2: #7a5af8;
+  --ok: #067647; --ok-soft: #ecfdf3; --warn: #b54708; --warn-soft: #fffaeb;
+  --thead: #f2f5fb; --shadow: 0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.08);
+  --shadow-lg: 0 10px 24px -8px rgba(16,24,40,.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c111d; --card: #161b26; --text: #f5f5f6; --muted: #94969c; --line: #2a303c;
+    --accent: #5b8cff; --accent-soft: #17223b; --accent-2: #9b8afb;
+    --ok: #47cd89; --ok-soft: #102a1f; --warn: #fdb022; --warn-soft: #2b2110;
+    --thead: #1c2230; --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-lg: 0 10px 24px -8px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c111d; --card: #161b26; --text: #f5f5f6; --muted: #94969c; --line: #2a303c;
+  --accent: #5b8cff; --accent-soft: #17223b; --accent-2: #9b8afb;
+  --ok: #47cd89; --ok-soft: #102a1f; --warn: #fdb022; --warn-soft: #2b2110;
+  --thead: #1c2230; --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-lg: 0 10px 24px -8px rgba(0,0,0,.6);
+}
+body { font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; letter-spacing: -0.01em; -webkit-font-smoothing: antialiased; }
+
+/* 전체 폭 레이아웃 */
+.wrap.app { max-width: none; margin: 0; padding: 0; display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+.top { position: sticky; top: 0; height: 100vh; overflow-y: auto; margin: 0; padding: 26px 18px; border: 0; border-right: 1px solid var(--line); background: var(--card); display: flex; flex-direction: column; gap: 6px; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand .logo { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); flex: none; }
+.top h1 { font-size: 19px; margin: 0; letter-spacing: -0.02em; }
+.top .sub { font-size: 12.5px; line-height: 1.6; margin: 6px 2px 18px; }
+.nav { flex-direction: column; flex-wrap: nowrap; gap: 4px; overflow: visible; }
+.nav a { display: flex; align-items: center; gap: 10px; border: 0; background: transparent; border-radius: 10px; padding: 10px 12px; font-size: 14.5px; font-weight: 600; color: var(--muted); }
+.nav a svg { flex: none; opacity: .85; }
+.nav a:hover { background: var(--bg); color: var(--text); }
+.nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+.main { padding: 32px 40px 56px; min-width: 0; }
+@media (max-width: 960px) {
+  .wrap.app { grid-template-columns: 1fr; }
+  .top { height: auto; position: sticky; z-index: 30; padding: 14px 16px 10px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .top .sub { margin-bottom: 8px; }
+  .nav { flex-direction: row; overflow-x: auto; }
+  .nav a { white-space: nowrap; padding: 8px 12px; }
+  .main { padding: 20px 16px 40px; }
+}
+
+/* 제목 */
+h2.sec { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin: 36px 0 6px; }
+.secsub { font-size: 14.5px; margin: 0 0 16px; }
+.q { font-size: 15px; margin: 18px 0 10px; }
+
+/* 선택 버튼 */
+.chips { grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr)); gap: 10px; }
+.chip { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); font-weight: 700; font-size: 15px; transition: transform .12s, box-shadow .12s, border-color .12s; }
+.chip small { font-weight: 500; margin-top: 3px; }
+.chip:hover { transform: translateY(-1px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+
+/* 패널·카드 */
+.panel { border: 1px solid var(--line); border-radius: 18px; padding: 28px; box-shadow: var(--shadow); }
+.panel h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.pick { border-radius: 999px; padding: 5px 14px; font-size: 14px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.overview { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 1280px) { .overview { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; } .overview .shots { margin: 0; } }
+.shots figure { max-width: none; border-radius: 14px; box-shadow: var(--shadow); }
+.grid { gap: 14px; }
+.box { border-radius: 14px; padding: 16px 18px; box-shadow: var(--shadow); }
+.box h3 { font-size: 13px; text-transform: none; }
+.cost { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+.ml { grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 16px; }
+.mlc { border-radius: 16px; box-shadow: var(--shadow); transition: transform .15s, box-shadow .15s; }
+.mlc:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.mlc .shot { background: var(--thead); border-bottom: 1px solid var(--line); }
+.mlc h3 { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+.mlc .tag { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; font-weight: 700; }
+.mlc .ex, .mlc .con { border-radius: 10px; }
+.mlc .lnk a { background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; font-size: 12.5px; }
+.mlc .lnk a:hover { text-decoration: none; filter: brightness(.97); }
+
+/* 표 */
+.tbl { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; overflow-x: auto; box-shadow: var(--shadow); background: var(--card); }
+table { border: 0; }
+th, td { border: 0; border-bottom: 1px solid var(--line); padding: 10px 14px; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+thead th { background: var(--thead); color: var(--muted); font-size: 12.5px; font-weight: 700; letter-spacing: .02em; }
+tbody tr:hover td { background: color-mix(in srgb, var(--accent-soft) 50%, transparent); }
+.price h3 { font-size: 17px; font-weight: 800; margin: 26px 0 10px; }
+
+/* 조합 만들기 */
+.builder { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+@media (min-width: 1100px) { .builder { grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.6fr); } }
+.sels { border-radius: 18px; padding: 20px; box-shadow: var(--shadow); gap: 14px; }
+.sels select, .sels input { border-radius: 10px; padding: 10px 12px; background: var(--card); }
+.sels select:focus, .sels input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.final { border: 0; border-radius: 18px; padding: 22px 24px; background: linear-gradient(160deg, var(--accent-soft), var(--card) 70%); box-shadow: var(--shadow), inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent); }
+.final h3 { font-size: 20px; font-weight: 800; }
+.final table { border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+.final .sum { margin: 16px 0 8px; }
+.final .sum span { background: var(--card); border-radius: 12px; padding: 8px 14px; box-shadow: var(--shadow); }
+.final .sum b { color: var(--accent); }
+.combo { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 14px; box-shadow: var(--shadow); padding: 14px 18px; }
+.foot { margin-top: 40px; }
+#linklist h3 { font-size: 17px; font-weight: 800; margin: 26px 0 10px; }
+
+/* 넓은 화면 공간 활용 */
+@media (min-width: 1100px) { #crit { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (min-width: 1500px) { .builder { grid-template-columns: minmax(320px, 420px) minmax(0, 1fr); } }
+.fgrid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 1300px) { .fgrid { grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); align-items: start; } }
+.ftbl table { width: 100%; }
+.fside { display: flex; flex-direction: column; gap: 12px; }
+.fside .sum { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fside .sum span { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--muted); padding: 12px 14px; }
+.fside .sum b { font-size: 24px; }
+.fnotes { background: var(--card); border-radius: 12px; padding: 12px 14px; box-shadow: var(--shadow); font-size: 13.5px; }
+.fnotes b { font-size: 13px; color: var(--muted); }
+.fnotes ul { margin: 6px 0 0; }
+.cmp tbody tr { cursor: pointer; }
+.cmp tbody tr.on td { background: var(--accent-soft); }
+.cmp tbody tr.on td.n { color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.cmp td.n { font-weight: 800; white-space: nowrap; }
+.cmp td.nw { white-space: nowrap; font-weight: 700; }
+.cmp td.care { color: var(--warn); font-size: 13px; }
+.bar { display: flex; align-items: center; gap: 10px; }
+.bar i { flex: 1; height: 10px; border-radius: 999px; background: var(--thead); overflow: hidden; }
+.bar span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.bar em { font-style: normal; font-weight: 700; font-size: 13px; white-space: nowrap; min-width: 72px; }
+
+/* 통계 */
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 16px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+.stat h4 { margin: 0 0 12px; font-size: 16px; font-weight: 800; letter-spacing: -0.02em; }
+.stat .rows { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.srow { display: grid; grid-template-columns: minmax(96px, 150px) 1fr 64px; align-items: center; gap: 10px; font-size: 13.5px; }
+.srow .sn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.srow .st { height: 12px; border-radius: 999px; background: var(--thead); overflow: hidden; }
+.srow .st i { display: block; height: 100%; border-radius: 999px; background: color-mix(in srgb, var(--muted) 45%, transparent); }
+.srow.hl .sn { font-weight: 800; color: var(--accent); }
+.srow.hl .st i { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.srow .sv { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stat .src { margin-top: 12px; font-size: 11.5px; color: var(--muted); line-height: 1.5; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 14px; margin-bottom: 16px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 4px; }
+.kpi b { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; background: linear-gradient(135deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.kpi span { color: var(--muted); font-size: 13.5px; }
+@media (min-width: 1100px) { #st-combo .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1700px) { #st-combo .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.vs td.w { background: color-mix(in srgb, var(--accent-soft) 60%, transparent); }
+.vs th.win { color: var(--accent); }
+.tagw { font-size: 11px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-radius: 999px; padding: 1px 8px; margin-left: 4px; }
+.vs td.n { width: 18%; }
+
+.titlebar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; font: inherit; font-weight: 700; font-size: 14.5px; color: #fff; border: 0; border-radius: 12px; padding: 11px 18px; cursor: pointer;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: var(--shadow-lg); transition: transform .12s, filter .12s; }
+.btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.print-head { display: none; }
+@media print {
+  @page { size: A4 landscape; margin: 10mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff !important; font-size: 11.5px; }
+  .wrap.app { display: block; }
+  .top, .btn, #crit, .sels, .combosec-hide, .chip, nav { display: none !important; }
+  .main { padding: 0 !important; }
+  #combosec > p.q, #combosec > .secsub { display: none; }
+  .print-head { display: block; margin-bottom: 10px; }
+  .ph-top { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #2f6bff; padding-bottom: 8px; }
+  .ph-kicker { color: #2f6bff; font-weight: 800; font-size: 11px; letter-spacing: .08em; }
+  .print-head h1 { font-size: 22px; margin: 2px 0 0; }
+  .ph-meta { text-align: right; color: #555; font-size: 11px; line-height: 1.6; }
+  .ph-sum { margin-top: 8px; background: #eef3ff; border-radius: 8px; padding: 8px 12px; font-size: 12px; }
+  .titlebar h2 { font-size: 16px !important; }
+  h2.sec { font-size: 15px; margin: 14px 0 6px; break-after: avoid; }
+  .builder { display: block; margin: 0; }
+  .final { box-shadow: none !important; border: 1px solid #c9d6ff; background: #fff !important; padding: 12px 14px; break-inside: avoid; }
+  .fgrid { grid-template-columns: 1.5fr 1fr !important; }
+  .tbl, .stat, .fnotes, .final table, .fside .sum span { box-shadow: none !important; }
+  .tbl { break-inside: auto; }
+  tr { break-inside: avoid; }
+  #st-combo .stats { grid-template-columns: repeat(2, 1fr) !important; }
+  .stat { break-inside: avoid; padding: 10px 12px; }
+  .cmp tbody tr.on td { background: #eef3ff !important; }
+  .foot { font-size: 9.5px; margin-top: 12px; }
+}
+
+.billsel { display: flex; flex-direction: column; gap: 4px; }
+.billsel > span { font-size: 13px; color: var(--muted); font-weight: bold; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; }
+.seg button { font: inherit; font-size: 14.5px; font-weight: 700; border: 0; border-radius: 8px; padding: 8px 10px; background: transparent; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--card); color: var(--accent); box-shadow: var(--shadow); }
+@media print {
+  .billsel { display: none; }
+  #combosec > h2.sec { break-before: page; }
+  #combosec > .tbl { break-inside: auto; }
+  .stat .rows { flex: none; }
+  .stats { align-items: start; }
+  #st-combo .stats { grid-template-columns: repeat(4, 1fr) !important; gap: 8px; }
+  .srow { grid-template-columns: 90px 1fr 48px; font-size: 10.5px; }
+  .stat h4 { font-size: 12.5px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap app">
+  <header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><path d="M17.5 14v7M14 17.5h7"/></svg></span><h1>협업 도구 정리</h1></div>
+  <div class="sub">2026년 10월 13일 · 원화는 1달러 = 1,400원, 부가세 별도</div>
+
+  <nav class="nav" id="tabs"><a href="#combo" data-tab="combosec"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h6"/><circle cx="18" cy="16" r="3"/></svg>조합 만들기</a><a href="#task" data-tab="sit"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>역할별 도구</a><a href="#ml-tools" data-tab="mlsec"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l5-7 4 4 5-9 4 6"/><path d="M3 4v16h18"/></svg>ML·DL 협업 도구</a><a href="#test-tools" data-tab="testsec"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/></svg>모델 테스트 도구</a><a href="#viz-tools" data-tab="vizsec"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>가시화 도구</a><a href="#ai-tools" data-tab="aisec"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>AI 협업 도구</a><a href="#links" data-tab="linksec"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>링크 모음</a></nav>
+  </header>
+  <main class="main">
+
+  <section id="combosec" class="tab">
+  <div class="print-head" id="printHead"></div>
+  <div class="titlebar"><h2 class="sec" style="margin:0">조합 만들기</h2>
+    <button type="button" class="btn" id="printBtn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="7" rx="1"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/></svg>출력하기 (PDF 저장)</button></div>
+  <p class="secsub">기준을 고르면 일감·문서·코드·테스트 도구가 채워지고, 인원에 맞춰 비용이 계산됩니다. 역할마다 직접 바꿀 수도 있습니다.</p>
+  <p class="q">선택 기준</p>
+  <div class="chips" id="crit"></div>
+  <div class="builder">
+    <div class="sels">
+      <label>인원 (명)<input type="number" id="people" min="1" max="200" value="5"></label>
+      <div class="billsel"><span>결제 방식</span><div class="seg" role="radiogroup" aria-label="결제 방식"><button type="button" data-bill="m" aria-pressed="true">월 결제</button><button type="button" data-bill="y" aria-pressed="false">연 결제</button></div></div>
+      <label>일감 관리<select id="sel-task"></select></label>
+      <label>문서 관리<select id="sel-doc"></select></label>
+      <label>코드 · 이슈 관리<select id="sel-code"></select></label>
+      <label>테스트 · 품질 관리<select id="sel-qa"></select></label>
+    </div>
+    <div class="final" id="final" aria-live="polite"></div>
+  </div>
+  <h2 class="sec">기준별 조합 한눈에 비교</h2>
+  <p class="secsub">위에 입력한 인원 기준으로 계산합니다. 줄을 누르면 그 조합이 선택됩니다.</p>
+  <div class="tbl"><table id="cmp" class="cmp"></table></div>
+  <h2 class="sec">사용률 통계</h2>
+  <p class="secsub">전 세계 개발자 설문과 오픈소스 인기 지표입니다. 파란 막대는 이 페이지의 추천 도구입니다.</p>
+  <div id="st-combo"></div>
+
+  </section>
+
+  <section id="sit" class="tab" hidden>
+  <h2 class="sec" style="margin-top:0">역할별 도구</h2>
+  <p class="secsub">역할을 고르면 바로 아래에 추천 도구, 요금, 대체 도구가 나옵니다.</p>
+  <p class="q">역할</p>
+  <div class="chips" id="chips"></div>
+  <p class="q">업무 자동화 <span class="qs">하려는 일을 고르세요</span></p>
+  <div class="chips" id="chips2"></div>
+  <div class="panel" id="panel" aria-live="polite"></div>
+  </section>
+
+  <section id="mlsec" class="tab" hidden>
+  <h2 class="sec" style="margin-top:0">머신러닝·딥러닝 협업 도구</h2>
+  <p class="secsub">팀원이 같은 실험 기록·모델·데이터를 함께 보고 비교하는 도구. 사진을 누르면 크게 보입니다.</p>
+  <div class="panel" id="mlpanel" style="margin-bottom:22px"></div>
+  <h2 class="sec" style="margin-top:0">사용 통계</h2>
+  <p class="secsub">PyPI 다운로드는 실제 설치량에 가깝고, GitHub 스타는 관심도입니다.</p>
+  <div id="st-ml"></div>
+  <h2 class="sec">도구별 화면과 할 수 있는 것</h2>
+  <div class="ml" id="mlcards"></div>
+  </section>
+
+  <section id="testsec" class="tab" hidden>
+  <h2 class="sec" style="margin-top:0">모델 테스트 도구</h2>
+  <div class="combo"><b>보는 건 MLflow, 써 보는 건 테스트 화면</b><br>
+  <b>정량 테스트</b> · 테스트 데이터로 정확도·오차를 숫자로 측정 → <b>MLflow</b>에서 학습 지표와 같이 비교<br>
+  <b>정성 테스트</b> · 사람이 직접 입력을 넣어 결과를 눈으로 확인 → <b>테스트 화면</b> (Gradio, Streamlit 등)<span>입력·결과·평가를 MLflow에 기록하면 채택·재학습 판단을 한곳에서</span></div>
+  <h2 class="sec">사용 통계</h2>
+  <div id="st-test"></div>
+  <h2 class="sec">테스트 화면 만들기</h2>
+  <p class="secsub">학습된 모델을 웹 화면에서 바로 써 보는 도구. 여러 화면을 탭으로 나눠 한 화면에 둘 수 있습니다.</p>
+  <div class="ml" id="test1"></div>
+  </section>
+
+  <section id="vizsec" class="tab" hidden>
+  <h2 class="sec" style="margin-top:0">지도 · 3D 가시화 라이브러리</h2>
+  <p class="secsub">항적·탐지 범위를 지도와 3D로 직접 그리는 웹 라이브러리. 시뮬레이터·시연 화면을 만들 때 씁니다.</p>
+  <div class="ml" id="viz1"></div>
+  <h2 class="sec">항적 · 센서 데이터 시각화</h2>
+  <p class="secsub">개발 없이 바로 쓰는 도구. 예측 항적과 실제 항적을 지도·3D·시간축으로 비교합니다.</p>
+  <div class="ml" id="test2"></div>
+  <div class="foot" style="margin-top:12px">지도 배경은 외부 지도 서비스에서 불러오므로 인터넷이 안 되는 서버는 오프라인 지도가 필요합니다(MapLibre + 자체 지도 서버 등). 항적 위치가 민감하면 보안 규정을 확인하세요.</div>
+  </section>
+
+  <section id="aisec" class="tab" hidden>
+  <h2 class="sec" style="margin-top:0">AI 사용 통계</h2>
+  <p class="secsub">Stack Overflow 개발자 설문 2026 기준입니다.</p>
+  <div class="kpis"><div class="kpi"><b>65.9%</b><span>업무에 AI 코딩 도구 사용</span></div><div class="kpi"><b>73.0%</b><span>코딩 AI 사용자 중 매일 사용</span></div><div class="kpi"><b>40.5%</b><span>일주일에 AI 도구 3~5개 사용</span></div><div class="kpi"><b>17.2%</b><span>업무에 AI를 쓰지 않음</span></div></div>
+  <div id="st-ai"></div>
+  <h2 class="sec">범용 AI 에이전트</h2>
+  <p class="secsub">대화·문서·코드 작업을 하는 AI. 커넥터로 협업 도구와 연결해 일을 시킬 수 있습니다.</p>
+  <div class="ml" id="ai1"></div>
+  <h2 class="sec">협업 도구 안에 들어 있는 AI</h2>
+  <p class="secsub">특정 도구 안에서만 동작하는 AI 기능. 대부분 상위 요금제나 별도 결제입니다.</p>
+  <div class="ml" id="ai2"></div>
+  </section>
+
+  <section id="linksec" class="tab" hidden>
+  <h2 class="sec" style="margin-top:0">링크 모음</h2>
+  <p class="secsub">이 페이지에 나온 모든 서비스의 공식 사이트와 요금제 페이지. 누르면 새 창으로 열립니다.</p>
+  <div id="linklist"></div>
+  </section>
+
+  <div class="foot">
+    요금 출처: Jira·Confluence는 「Jira_Confluence_플랜비교.pdf」(10월 7일). ClearML, W&amp;B, GitLab, GitHub, Notion, Trello, Asana, Linear, Google Workspace, Bitbucket, Plane, Outline, TestRail, Qase, Xray, Zephyr는 각 공식 요금 페이지 (2026년 10월 13일 확인).
+    그 밖의 도구 기능·무료 범위는 일반 공개 정보 기준이라 도입 전 공식 페이지 확인 필요. AI 기능은 대부분 상위 요금제나 별도 결제.
+    ML·DL 도구 사진은 각 도구의 공식 문서·GitHub 저장소 이미지를 불러온 것으로, 인터넷이 연결되어 있어야 보입니다.
+  </div>
+</main>
+</div>
+
+<script>
+const S = [
+  {
+    id: "task", title: "일감 관리", hint: "누가 · 무엇을 · 언제까지",
+    pick: "Jira",
+    cost: "0원 ~ 월 약 5.5만 원", costNote: "Free는 10명까지 무료(저장 2GB). Standard는 5명 월 $40",
+    use: ["회의에서 나온 일감 등록, 담당자·기한 지정", "과제별 진행 보드 (할 일 · 진행 중 · 완료)", "일정·마일스톤으로 프로젝트 진도 확인"],
+    ai: ["Claude가 회의록에서 일감 추출 → Jira 등록", "\"이번 주 밀린 일감 정리해줘\" → Claude가 조회·요약"],
+    cons: ["인원이 늘면 비용도 그만큼 늘어남", "설정 항목이 많아 처음엔 복잡"],
+    warn: ["보기만 해도 1인당 요금, 계정 공유 불가", "GitLab 이슈와 역할 나누기: Jira는 업무 일감, GitLab 이슈는 코드 작업"],
+    alts: [
+      { name: "GitLab 이슈 보드", con: ["일정·간트 같은 프로젝트 관리 기능은 약함", "비개발자에게 화면이 낯섦"], meta: "0원", when: "일감을 코드와 한곳에서 볼 때",
+        can: ["이슈·라벨·마일스톤으로 칸반 보드", "MR이 병합되면 이슈 자동 종료"], img: "https://docs.gitlab.com/user/project/img/issue_boards_core_v17_1.png" },
+      { name: "Plane", con: ["설치·업데이트·백업을 직접 해야 함", "Jira보다 기능·연동 플러그인이 적음"], meta: "셀프호스팅 0원 + 서버 · 클라우드 무료 12명까지, Pro 1인 월 $6 (연간)", when: "Jira 같은 화면을 사내 서버에 둘 때",
+        can: ["일감 보드, 사이클(스프린트), 모듈", "오픈소스, 데이터가 사내에 남음"], img: "https://media.docs.plane.so/GitHub-readme/github-work-items.webp" },
+      { name: "OpenProject", con: ["화면이 무겁고 처음 배우기 어려움", "고급 기능은 유료 Enterprise"], meta: "셀프호스팅 무료판 · 유료 Enterprise", when: "간트 차트로 과제 일정을 관리할 때",
+        can: ["간트 차트, 작업 패키지, 시간 기록", "공공·연구기관에서 많이 사용"], img: "https://github.com/opf/openproject/raw/dev/GitHub-tab-new.png" },
+      { name: "Redmine", con: ["화면이 오래되고 투박함", "칸반 등은 플러그인을 따로 설치해야 함"], meta: "셀프호스팅 · 무료 (오픈소스)", when: "단순하고 오래 검증된 도구가 필요할 때",
+        can: ["이슈, 간트 차트, 위키 기본 제공", "국내 공공기관·연구소에서 많이 씀"] },
+      { name: "Linear", con: ["간트·리소스 관리 등 프로젝트 관리 기능은 약함", "국내 사용 사례·한국어 자료가 적음"], meta: "클라우드 · 무료 (이슈 250개까지) · Basic 1인 월 $10 (연간)", when: "빠르고 가벼운 이슈 관리를 원할 때",
+        can: ["키보드 중심의 빠른 화면, 사이클 관리", "GitLab·Slack 연동"] },
+      { name: "Trello", con: ["일감이 많아지면 관리가 어려움", "무료판은 자동화·보기 기능이 제한적"], meta: "클라우드 · 무료 10명까지 · Standard 1인 월 $5 (연간)", when: "단순한 칸반이면 충분할 때",
+        can: ["카드를 끌어 옮기는 칸반 보드", "비개발자도 바로 사용"] },
+      { name: "Asana", con: ["개발·코드 연동은 약함", "무료판은 기능·인원이 제한적"], meta: "클라우드 · 무료 2명까지 · Starter 1인 월 $10.99 (연간)", when: "개발 외 업무·일정 관리 위주일 때",
+        can: ["목록·타임라인·캘린더 보기", "업무 요청 양식, 반복 업무"] }
+    ]
+  },
+  {
+    id: "doc", title: "문서 관리", hint: "회의록 · 보고서 · 설계 문서",
+    pick: "Confluence",
+    cost: "0원 ~ 월 약 3.8만 원", costNote: "Free는 10명까지 무료(저장 2GB). Standard는 5명 월 $27",
+    use: ["회의록, 실험 보고서, 설계 문서, 설치 가이드", "Jira 일감과 서로 링크", "큰 파일은 NAS·Drive에 두고 링크만"],
+    ai: ["Claude가 실험 결과 요약 → Confluence 보고서 작성", "Rovo로 문서 검색·요약 (상위 요금제)"],
+    cons: ["Free는 저장 2GB라 첨부가 많으면 부족", "Jira 없이 단독으로 쓰면 장점이 줄어듦"],
+    warn: ["보기만 해도 1인당 요금"],
+    alts: [
+      { name: "Notion", con: ["일감 관리는 Jira보다 단순", "문서가 많아지면 느려지고 권한 관리가 약함"], meta: "클라우드 · 무료 (개인용) · Plus 1인 월 ₩16,800 (월간) / ₩14,000 (연간)", when: "비개발자도 쉽게 같이 쓸 때",
+        can: ["문서 + 데이터베이스 + 칸반을 한곳에", "Notion AI로 회의 요약 (유료)"], img: "https://images.ctfassets.net/spoqsaf9291f/2wLG1IRp651zLjBdMMFZH9/afc1469dc51b66123b10bf8467bc40ae/projects.png" },
+      { name: "Outline", con: ["설치·백업을 직접 해야 함", "로그인 연동(SSO) 설정이 필요해 설치가 까다로움"], meta: "셀프호스팅 Community 0원 · 클라우드 팀당 월 $10 (10명까지)", when: "Confluence 같은 문서를 사내 서버에 둘 때",
+        can: ["빠른 검색, 마크다운 편집", "Slack 연동, 공동 편집"], img: "https://user-images.githubusercontent.com/380914/110356468-26374600-7fef-11eb-9f6a-f2cc2c8c6590.png" },
+      { name: "Docmost", con: ["비교적 새 프로젝트라 검증 사례가 적음", "일부 기능은 유료 Enterprise"], meta: "셀프호스팅 · 무료 (오픈소스)", when: "Confluence 대체 오픈소스를 찾을 때",
+        can: ["공간·페이지 트리, 실시간 공동 편집", "draw.io 다이어그램 지원"], img: "https://docmost.com/screenshots/editor.png" },
+      { name: "GitLab 위키", con: ["편집 화면이 불편해 비개발자가 쓰기 어려움", "검색·문서 구조 기능이 약함"], meta: "0원", when: "개발 문서·설치 가이드 위주일 때",
+        can: ["저장소마다 위키, 마크다운", "Git으로 문서 버전 관리"] },
+      { name: "Wiki.js", con: ["다음 버전(3.0) 개발이 오래 걸리고 있음", "공동 실시간 편집은 약함"], meta: "셀프호스팅 · 무료 (오픈소스)", when: "가벼운 사내 위키가 필요할 때",
+        can: ["마크다운·비주얼 편집, 검색", "Git 저장소와 동기화"] },
+      { name: "BookStack", con: ["책·장·페이지 구조가 고정적이라 자유도가 낮음", "Jira 등 외부 연동이 적음"], meta: "셀프호스팅 · 무료 (오픈소스)", when: "매뉴얼을 책처럼 정리할 때",
+        can: ["책 · 장 · 페이지 구조", "설치 가이드·운영 매뉴얼에 적합"] },
+      { name: "Google Docs", con: ["문서가 흩어지기 쉬워 체계적 관리가 어려움", "외부 클라우드 저장 → 보안 규정 확인"], meta: "클라우드 · Business Starter 1인 월 $8.40 (월간) / $7 (1년 약정)", when: "여러 명이 동시에 편집할 때",
+        can: ["실시간 공동 편집, 댓글·제안", "Drive에 파일과 함께 보관"] }
+    ]
+  },
+  {
+    id: "code", title: "코드 · 이슈 관리", hint: "학습 코드 · 코드 리뷰",
+    pick: "GitLab",
+    cost: "0원", costNote: "GitLab 그대로. 추가 비용 없음",
+    use: ["학습 코드 저장소 관리", "MR로 코드 리뷰 후 병합", "커밋·MR에 이슈 번호를 걸어 코드 작업 추적", "CI로 테스트 자동 실행"],
+    ai: ["Claude Code가 이슈를 읽고 코드 수정 → MR 생성", "MR 변경 내용 요약·리뷰 (Claude 또는 GitLab Duo)"],
+    cons: ["일감·문서 관리 화면은 전용 도구보다 불편", "셀프호스팅이면 업데이트·백업을 직접 관리"],
+    warn: ["Jira 일감과 GitLab 이슈가 중복되지 않게 역할 구분", "API 토큰은 비밀번호처럼 관리"],
+    vs: { title: "GitLab vs GitHub", cols: ["GitLab", "GitHub"], rows: [
+      ["설치 방식", "셀프호스팅 무료판 + 클라우드(GitLab.com)", "클라우드 중심 (설치형 Enterprise Server는 유료)"],
+      ["무료 범위", "셀프호스팅 무료판은 인원 제한 없음 · GitLab.com 무료는 비공개 그룹 5명, CI 월 400분", "비공개 저장소·협업자 무제한, Actions 월 2,000분"],
+      ["유료 요금", "Premium 1인 월 $29 (연간)", "Team 1인 월 $4 (첫 12개월 가격)"],
+      ["CI/CD", "GitLab CI 내장, 사내 러너로 무제한 실행", "GitHub Actions, 공개 액션(재사용 부품)이 매우 많음"],
+      ["이슈·프로젝트 관리", "이슈·보드·마일스톤·위키 내장 (에픽 등은 유료)", "Issues·Projects·Discussions·위키"],
+      ["코드 리뷰", "MR, 승인 규칙 (상세 규칙은 유료)", "PR, 리뷰 필수 규칙"],
+      ["AI", "GitLab Duo (유료 추가)", "GitHub Copilot (무료 플랜 ~ 유료)"],
+      ["보안 점검", "기본 점검 일부 무료, 고급은 Ultimate", "Dependabot 무료, 고급 보안은 유료"],
+      ["데이터 사내 보관", "무료판 셀프호스팅으로 가능", "유료 Enterprise Server 필요"],
+      ["개발자 사용률 (SO 2025)", "35.6%", "81.1%"],
+      ["우리 팀", "옮길 필요 없음 (추천)", "외부 오픈소스 협업이 많을 때 고려"]
+    ], win: 0 },
+    alts: [
+      { name: "GitHub", con: ["외부 클라우드 저장 → 보안 규정 확인", "지금 GitLab에서 옮기는 작업이 필요"], meta: "클라우드 · 무료 · Team 1인 월 $4", when: "외부 오픈소스와 협업이 많을 때",
+        can: ["PR 코드 리뷰, Actions 자동화", "Copilot 코드 보조 (유료)"] },
+      { name: "Gitea", con: ["CI·보안 점검 등 기능이 GitLab보다 적음", "서버 관리를 직접 해야 함"], meta: "셀프호스팅 · 무료 (오픈소스)", when: "아주 가벼운 사내 저장소가 필요할 때",
+        can: ["GitHub과 비슷한 화면, 이슈·PR", "작은 서버에서도 동작"] },
+      { name: "Bitbucket", con: ["Atlassian 외 도구와의 연동은 약함", "지금 GitLab에서 옮기는 작업이 필요"], meta: "클라우드 · 5명까지 무료 · Standard 1인 월 $3.65", when: "Jira와 코드 연결을 가장 강하게 원할 때",
+        can: ["Jira 일감과 커밋·PR 자동 연결", "Pipelines 자동화"] }
+    ]
+  },
+  {
+    id: "qa", title: "테스트 · 품질 관리", hint: "자동 테스트 · 코드·모델 품질",
+    pick: "GitLab CI + pytest (자동 테스트)",
+    cost: "0원", costNote: "GitLab CI로 테스트 자동 실행. 코드 품질 점검은 SonarQube 무료판 추가 가능",
+    use: ["MR을 올리면 학습 코드 테스트(pytest)가 자동 실행", "테스트를 통과해야 병합되게 설정", "모델 정량 평가 결과를 MLflow에 기록하고 기준 미달이면 실패 처리", "SonarQube로 코드 품질·보안 점검 (선택)"],
+    ai: ["Claude Code가 테스트 코드 작성·실패 원인 분석", "MR마다 변경 내용과 테스트 결과 요약"],
+    cons: ["수동 테스트 기록(테스트 케이스 문서) 관리는 약함", "CI 러너(테스트 실행 서버) 설정이 필요"],
+    warn: ["GPU가 필요한 테스트는 GPU 서버에 러너를 둬야 함", "사람이 직접 보는 모델 테스트는 모델 테스트 도구 탭 (Gradio·Streamlit)"],
+    alts: [
+      { name: "SonarQube", meta: "셀프호스팅 Community 무료 · 상위판 유료", when: "코드 품질 기준을 정해 관리할 때",
+        can: ["코드 품질·중복·보안 취약점 자동 점검", "GitLab MR에 점검 결과 표시"], con: ["서버가 하나 더 필요 (메모리 많이 씀)", "브랜치·MR 분석 등 일부 기능은 유료판"] },
+      { name: "Xray (Jira 앱)", meta: "Jira 앱 · 10명까지 월 $10 / 연 $100 정액", when: "Jira를 쓰고 테스트 기록을 체계적으로 남길 때",
+        can: ["Jira 안에서 테스트 케이스·실행 결과 관리", "요구사항 ↔ 테스트 ↔ 결함 연결 추적"], con: ["Jira 필수, 별도 요금", "설정 항목이 많음"] },
+      { name: "Zephyr (Jira 앱)", meta: "Jira 앱 · 10명까지 월 $10 / 연 $100 정액", when: "Jira에서 테스트 계획·실행을 관리할 때",
+        can: ["테스트 케이스·사이클 관리", "Jira 일감과 테스트 결과 연결"], con: ["Jira 필수, 별도 요금", "Xray와 기능이 겹쳐 하나만 고르면 됨"] },
+      { name: "TestRail", meta: "클라우드·설치형 · 1인 월 $22~78 (연간), 30일 체험", when: "수동 테스트가 많고 보고서가 필요할 때",
+        can: ["테스트 케이스·계획·실행 결과 전문 관리", "Jira·GitLab 연동"], con: ["1인 요금이 비싼 편", "무료판 없음 (체험만)"] },
+      { name: "Qase", meta: "클라우드 · 무료 4명까지 · Teams 1인 월 $35 (연간)", when: "가볍게 테스트 기록을 시작할 때",
+        can: ["쉬운 화면의 테스트 케이스 관리", "자동 테스트 결과 연동"], con: ["외부 클라우드 저장 → 보안 규정 확인", "무료판은 인원·기능 제한"] },
+      { name: "Kiwi TCMS", meta: "셀프호스팅 · 무료 (오픈소스)", when: "무료로 사내 서버에 테스트 기록을 둘 때",
+        can: ["테스트 계획·케이스·실행 기록", "자동 테스트 결과 가져오기"], con: ["자료·사용자가 적음", "화면이 단순함"] },
+      { name: "Evidently", meta: "오픈소스 무료 · 클라우드 유료", img: "https://github.com/evidentlyai/docs/raw/eb1630cdd80d31d55921ff4d34fc7b5e6e9c9f90/images/concepts/report_test_preview.gif",
+        when: "학습 모델 품질을 계속 점검할 때",
+        can: ["모델 성능·데이터 변화(드리프트) 리포트", "기준 미달 시 테스트 실패 처리"], con: ["설정하려면 데이터에 대한 이해가 필요", "대시보드 고급 기능은 유료"] }
+    ]
+  },
+  {
+    id: "ml", title: "GPU 학습 결과 관리", hint: "AI 실험을 기록·비교할 때",
+    pick: "MLflow (셀프호스팅)",
+    cost: "0원", costNote: "GPU 서버에 설치, 나중에 별도 서버로",
+    use: ["과제별 실험, 학습마다 지표·그래프 자동 기록", "좋은 모델은 모델 레지스트리에 등록"],
+    ai: ["\"과제 최고 모델 비교해줘\" → Claude가 MLflow 조회 → 비교표", "결과 요약을 Confluence 실험 보고서로"],
+    cons: ["로그인·권한 기능이 기본으로 없음", "재학습은 스크립트로 따로 실행해야 함"],
+    warn: ["로그인 기능 없음 → SSH로만 접속", "GPU 서버가 임대면 꼭 백업"],
+    alt: "화면에서 바로 재학습하려면 ClearML (직접 설치 0원, 클라우드 Pro 3년 약 378만 원). 외부 저장 괜찮으면 W&B (Pro 월 $60부터, 견적 확인)"
+  },
+  {
+    id: "meeting", title: "회의 내용을 일감으로", hint: "회의록에서 할 일을 자동 등록할 때",
+    pick: "Whisper + Claude + Jira + GitLab",
+    cost: "0원 + 녹음 장치", costNote: "Whisper는 노트북에서 무료 실행",
+    use: ["회의 녹음 → 텍스트 변환 → 일감 추출", "관리자 승인 후 GitLab 이슈 생성, Slack 알림"],
+    ai: ["Claude가 회의 내용에서 일감·담당자·기한 추출", "반려·수정은 Jira에서 처리"],
+    cons: ["녹음 품질에 따라 받아쓰기 정확도가 달라짐", "파이프라인 유지보수 담당자가 필요"],
+    warn: ["AI가 만든 일감은 사람이 승인한 뒤 반영", "녹음 파일 보관 위치는 보안 규정 확인"],
+    alt: "Teams·Meet을 쓰면 Copilot·Gemini 회의록 기능도 가능 (유료)"
+  }
+];
+
+// 예시 그림 (공식 화면이 아니라 직접 그린 그림)
+const SVG = {
+  jira: `<svg viewBox="0 0 480 270" xmlns="http://www.w3.org/2000/svg" font-family="Malgun Gothic,sans-serif">
+<rect width="480" height="270" fill="#fff"/><rect width="480" height="34" fill="#0c66e4"/>
+<text x="14" y="22" font-size="13" fill="#fff" font-weight="bold">Jira · AI 프로젝트 보드</text>
+${[["할 일",14,[["데이터 정리","#e2b203"],["회의록 일감 검토","#0c66e4"]]],["진행 중",170,[["모델 재학습","#c25100"],["MLflow 백업 설정","#0c66e4"]]],["완료",326,[["모델 채택","#1f845a"]]]].map(([t,x,cs])=>
+`<rect x="${x}" y="46" width="142" height="212" rx="6" fill="#f1f2f4"/><text x="${x+10}" y="66" font-size="11.5" fill="#44546f" font-weight="bold">${t}</text>`+
+cs.map(([c,col],i)=>`<rect x="${x+8}" y="${78+i*62}" width="126" height="52" rx="5" fill="#fff" stroke="#dcdfe4"/><rect x="${x+8}" y="${78+i*62}" width="4" height="52" rx="2" fill="${col}"/><text x="${x+18}" y="${98+i*62}" font-size="11" fill="#172b4d">${c}</text><text x="${x+18}" y="${118+i*62}" font-size="9.5" fill="#626f86">AI-${12+i+x%7} · 담당자</text>`).join("")).join("")}
+</svg>`,
+  conf: `<svg viewBox="0 0 480 270" xmlns="http://www.w3.org/2000/svg" font-family="Malgun Gothic,sans-serif">
+<rect width="480" height="270" fill="#fff"/><rect width="110" height="270" fill="#f7f8f9"/>
+<text x="12" y="24" font-size="11" fill="#44546f" font-weight="bold">AI 프로젝트 공간</text>
+${["회의록","실험 보고서","설계 문서","설치 가이드"].map((t,i)=>`<text x="16" y="${52+i*24}" font-size="10.5" fill="${i===1?"#0c66e4":"#44546f"}">${t}</text>`).join("")}
+<text x="130" y="36" font-size="17" fill="#172b4d" font-weight="bold">실험 보고서</text>
+<text x="130" y="56" font-size="10" fill="#626f86">작성: Claude · 검토: 담당자 · 연결 일감 AI-14</text>
+<rect x="130" y="70" width="330" height="8" rx="3" fill="#dcdfe4"/><rect x="130" y="86" width="280" height="8" rx="3" fill="#dcdfe4"/>
+<rect x="130" y="108" width="330" height="22" fill="#e9f2ff"/><text x="140" y="123" font-size="10.5" fill="#172b4d" font-weight="bold">모델      정확도      손실      판단</text>
+${[["v3","0.91","0.21","채택"],["v2","0.87","0.30","폐기"]].map((r,i)=>`<rect x="130" y="${130+i*22}" width="330" height="22" fill="#fff" stroke="#dcdfe4"/><text x="140" y="${145+i*22}" font-size="10.5" fill="#172b4d">${r[0]}          ${r[1]}         ${r[2]}       ${r[3]}</text>`).join("")}
+<rect x="130" y="188" width="150" height="66" rx="4" fill="#f1f2f4"/><text x="205" y="225" font-size="10" fill="#626f86" text-anchor="middle">학습 곡선 이미지 (MLflow 링크)</text>
+<rect x="292" y="188" width="168" height="8" rx="3" fill="#dcdfe4"/><rect x="292" y="204" width="140" height="8" rx="3" fill="#dcdfe4"/>
+</svg>`,
+  meeting: `<svg viewBox="0 0 480 270" xmlns="http://www.w3.org/2000/svg" font-family="Malgun Gothic,sans-serif">
+<rect width="480" height="270" fill="#fff"/>
+<defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" fill="#626f86"/></marker></defs>
+${[["회의 녹음","meeting.wav",20,26,"#fdf3e7","#c2782a"],["Whisper","음성 → 텍스트",180,26,"#e9f2ff","#0c66e4"],["Claude","일감 추출",340,26,"#e6f4ea","#1f845a"],
+   ["Jira","일감 등록",340,112,"#e9f2ff","#0c66e4"],["관리자 승인","반려·수정 가능",180,112,"#fff4d6","#9a6700"],["GitLab 이슈","담당자·기한",20,112,"#f1f2f4","#626f86"],["Slack 알림","생성 알림",20,198,"#f1f2f4","#626f86"]]
+  .map(([a,b,x,y,f,s])=>`<rect x="${x}" y="${y}" width="120" height="50" rx="8" fill="${f}" stroke="${s}" stroke-width="1.5"/><text x="${x+60}" y="${y+22}" font-size="13" text-anchor="middle" font-weight="bold" fill="#172b4d">${a}</text><text x="${x+60}" y="${y+39}" font-size="10.5" text-anchor="middle" fill="#44546f">${b}</text>`).join("")}
+${[[142,51,178,51],[302,51,338,51],[400,78,400,110],[338,137,302,137],[178,137,142,137],[80,164,80,196]].map(([a,b,c,d])=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="#626f86" stroke-width="1.8" marker-end="url(#m)"/>`).join("")}
+</svg>`
+};
+
+const EXTRA = {
+  task: {
+    shots: [{ svg: "jira", cap: "Jira 보드 (예시 그림)" },
+            { src: "https://media.docs.plane.so/GitHub-readme/github-work-items.webp", cap: "대안 · Plane 일감 화면 (공식 GitHub)" }],
+    price: { rows: [
+      ["Jira Free", "0원", "10명까지, 저장 2GB, MCP 시간당 500회"],
+      ["Jira Standard · 월 결제", "1인 월 $7.91 (약 1.1만 원)", "5명 월 $39.55 (약 5.5만 원)"],
+      ["Jira Standard · 연 결제", "연 $900 정액 (10명까지)", "월 환산 $75 (약 10.5만 원) → 10명 이하에선 월 결제가 더 쌈"],
+      ["Plane (셀프호스팅 · 클라우드)", "셀프호스팅 0원 + 서버", "클라우드는 무료 12명까지, Pro 1인 월 $6 (연간) / $8 (월간)"],
+      ["Redmine (셀프호스팅)", "0원 + 서버", "서버 월 0~2만 원, 관리 월 1~2시간"]
+    ], note: "Jira는 접근 권한이 있으면 보기만 해도 1인 요금. 월 결제는 인원 변동이 다음 청구서에 자동 반영." }
+  },
+  doc: {
+    shots: [{ svg: "conf", cap: "Confluence 실험 보고서 (예시 그림)" },
+            { src: "https://user-images.githubusercontent.com/380914/110356468-26374600-7fef-11eb-9f6a-f2cc2c8c6590.png", cap: "대안 · Outline 문서 화면 (공식 GitHub)" },
+            { src: "https://images.ctfassets.net/spoqsaf9291f/2wLG1IRp651zLjBdMMFZH9/afc1469dc51b66123b10bf8467bc40ae/projects.png", cap: "대안 · Notion (공식 도움말)" }],
+    price: { rows: [
+      ["Confluence Free", "0원", "10명까지, 저장 2GB"],
+      ["Confluence Standard · 월 결제", "1인 월 $5.42 (약 7,600원)", "5명 월 $27.10 (약 3.8만 원)"],
+      ["Confluence Standard · 연 결제", "연 $680 정액 (10명까지)", "월 환산 약 $56.7 (약 7.9만 원) → 10명 이하에선 월 결제가 더 쌈"],
+      ["Outline", "셀프호스팅 Community 0원", "클라우드는 팀당 월 $10 (10명까지), $79 (100명까지)"],
+      ["Notion Plus", "1인 월 ₩16,800 (월간) / ₩14,000 (연간)", "5명 월 8.4만 원 (월간) / 7만 원 (연간) · AI 전체는 Business ₩30,000 (연간)"]
+    ], note: "파일을 NAS·Google Drive에 두고 링크만 남기면 Confluence Free로도 3년 사용 가능." }
+  },
+  code: {
+    shots: [{ src: "https://docs.gitlab.com/user/project/img/issue_boards_core_v17_1.png", cap: "GitLab 이슈 보드 (공식 문서)" }],
+    price: { rows: [
+      ["GitLab 셀프호스팅 (무료판)", "0원", "인원 제한 없음. 서버 관리 필요"],
+      ["GitLab.com Free", "0원", "비공개 그룹 5명까지, CI 월 400분, 저장 프로젝트당 10GB"],
+      ["GitLab Premium", "1인 월 $29 (연간 결제)", "인원 제한 없음, CI 월 10,000분, 고급 CI/CD"]
+    ], note: "지금 쓰는 GitLab 요금제 그대로면 추가 비용 없음." }
+  },
+  qa: {
+    shots: [{ src: "https://docs.gitlab.com/ci/pipelines/img/pipeline_details_v17_9.png", cap: "GitLab CI 파이프라인 (공식 문서)" },
+            { src: "https://github.com/evidentlyai/docs/raw/eb1630cdd80d31d55921ff4d34fc7b5e6e9c9f90/images/concepts/report_test_preview.gif", cap: "모델 품질 · Evidently 리포트 (공식 GitHub)" }],
+    price: { rows: [
+      ["GitLab CI + pytest", "0원", "GitLab.com 무료판은 CI 월 400분, 사내 러너를 쓰면 제한 없음"],
+      ["SonarQube Community", "0원 + 서버", "셀프호스팅 무료판"],
+      ["Xray · Zephyr (Jira 앱)", "10명까지 월 $10 / 연 $100 정액", "11명부터는 인원별 요금 (마켓플레이스에서 확인)"],
+      ["TestRail", "1인 월 $22 (Essentials, 5명까지)", "Professional $38, Enterprise $78 (연간) · 30일 무료 체험"],
+      ["Qase", "무료 (4명까지)", "Teams 1인 월 $35 (연간) / $42 (월간)"]
+    ], note: "자동 테스트는 GitLab CI로 0원 시작. 수동 테스트 기록이 많아지면 Xray·Kiwi TCMS 등을 추가." }
+  },
+  ml: {
+    shots: [{ src: "https://mlflow.org/docs/latest/assets/images/tracking-metrics-ui-temp-ffc0da57b388076730e20207dbd7f9c4.png", cap: "MLflow 학습 지표 (공식 문서)" },
+            { src: "https://mlflow.org/docs/latest/assets/images/tracking-models-ui-0f88d40c517e103cdead462aab12781a.png", cap: "MLflow 모델 목록 (공식 문서)" }],
+    price: { rows: [
+      ["MLflow (셀프호스팅)", "0원", "GPU 서버에 설치. 별도 서버로 옮기면 월 1~5만 원"],
+      ["ClearML 셀프호스팅", "0원", "MLflow처럼 직접 설치"],
+      ["ClearML Pro (클라우드)", "1인 월 $15 + 사용량", "5명 월 $75 (약 10.5만 원), 3년 약 378만 원"],
+      ["W&B Free", "0원", "5명까지, 저장 월 5GB (모델 파일엔 부족)"],
+      ["W&B Pro", "월 $60부터", "1인당인지 명시 없음 → 견적 확인"]
+    ], note: "ClearML·W&B는 2026년 10월 13일 공식 요금 페이지 확인." }
+  },
+  meeting: {
+    shots: [{ svg: "meeting", cap: "회의 → 일감 흐름 (예시 그림)" }],
+    price: { rows: [
+      ["Whisper (음성 → 텍스트)", "0원", "노트북에서 직접 실행"],
+      ["Claude", "사용 중인 Claude 요금제", "일감 추출에 사용"],
+      ["Jira · GitLab · Slack", "기존 요금 그대로", "Jira는 Free로도 가능"],
+      ["녹음 장치", "구매비 1회", "Anker PowerConf A3301 등"]
+    ], note: "추가 월 요금은 거의 없음. 대량 처리는 API 방식이라 MCP 시간당 한도와 무관." }
+  }
+};
+const shot = s => s.svg
+  ? "<figure><div class='frame'>" + SVG[s.svg] + "</div><figcaption>" + esc(s.cap) + "</figcaption></figure>"
+  : "<figure><a class='frame' href='" + esc(s.src) + "' target='_blank' rel='noopener'><img loading='lazy' src='" + esc(s.src) + "' alt='" + esc(s.cap) + "' onerror=\"this.parentNode.classList.add('err');this.remove()\"><span>사진을 불러오지 못함 (인터넷 필요)</span></a><figcaption>" + esc(s.cap) + "</figcaption></figure>";
+const con = t => t.con ? "<div class='con'><b>단점</b>" + list(t.con) + "</div>" : "";
+const altCards = s => "<div class='price'><h3>" + esc(s.pick.replace(/ \(.*\)/, "")) + " 대신 쓸 수 있는 도구</h3><div class='ml'>" +
+  s.alts.map(t => "<div class='mlc'>" +
+    (t.img ? "<a class='shot' href='" + esc(t.img) + "' target='_blank' rel='noopener'><img loading='lazy' src='" + esc(t.img) + "' alt='" + esc(t.name) + " 화면' onerror=\"this.parentNode.classList.add('err');this.remove()\"><span>사진을 불러오지 못함 (인터넷 필요)</span></a>" : "") +
+    "<div class='body'><h3>" + esc(t.name) + "</h3><div class='meta'>" + esc(t.meta) + "</div>" + list(t.can) +
+    "<div class='ex'><b>이럴 때</b> · " + esc(t.when) + "</div>" + con(t) + lnk(t.name) + "</div></div>").join("") +
+  "</div><div class='pnote'>대체 도구의 기능·비용은 일반 공개 정보 기준이라 도입 전 공식 페이지 확인 필요.</div></div>";
+const priceTable = p => "<div class='price'><h3>요금 설명 (5명 기준)</h3><div class='tbl'><table><thead><tr><th>요금제</th><th>요금</th><th>설명</th></tr></thead><tbody>" +
+  p.rows.map(r => "<tr><td class='n'>" + esc(r[0]) + "</td><td>" + esc(r[1]) + (r[3] ? "<span class='chk'>확인 필요</span>" : "") + "</td><td>" + esc(r[2]) + "</td></tr>").join("") +
+  "</tbody></table></div><div class='pnote'>" + esc(p.note) + "</div></div>";
+
+const chips = document.getElementById("chips");
+const chips2 = document.getElementById("chips2");
+const panel = document.getElementById("panel");
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const list = a => "<ul>" + a.map(x => "<li>" + esc(x) + "</li>").join("") + "</ul>";
+// ---- 통계 (출처·날짜는 카드마다 표시)
+const SO25 = "Stack Overflow 개발자 설문 2025 · 전 세계 개발자 · 복수 선택";
+const SO26 = "Stack Overflow 개발자 설문 2026 · 전 세계 개발자 · 복수 선택";
+const GH = "GitHub 스타 수 · 2026년 10월 13일 기준 · 인기 지표이며 실제 사용자 수와 다름";
+const PYPI = "PyPI 최근 30일 다운로드 · 2026년 10월 13일 기준 · 자동화(CI) 다운로드 포함";
+const STAT = {
+  task: { title: "일감·이슈 관리 도구 사용률", src: SO25 + " (2026 설문엔 이 항목 없음)", unit: "%",
+    items: [["Jira", 46.4, 1], ["Trello", 13.7], ["Asana", 4.4], ["Linear", 3.7]] },
+  doc: { title: "문서·지식 관리 도구 사용률", src: SO26 + " · 응답 9,142명", unit: "%",
+    items: [["Confluence", 55.2, 1], ["Google Workspace", 41.1], ["SharePoint", 32.0], ["Notion", 18.6], ["Obsidian", 2.8], ["BookStack", 1.4], ["Outline", 1.1], ["GitLab", 0.7]] },
+  code: { title: "코드 저장소 사용률", src: SO25 + " (2026 설문엔 이 항목 없음)", unit: "%",
+    items: [["GitHub", 81.1], ["GitLab", 35.6, 1], ["Azure DevOps", 16.6]] },
+  self: { title: "셀프호스팅 오픈소스 인기", src: GH, unit: "k",
+    items: [["Plane", 60.7], ["Gitea", 58.5], ["Outline", 40.9], ["Wiki.js", 29.0], ["Docmost", 22.0], ["BookStack", 19.1], ["OpenProject", 16.4], ["Redmine", 6.0]] },
+  qa: { title: "테스트 도구 사용률", src: SO26 + " · 응답 10,604명 · 코드 테스트·품질 도구", unit: "%",
+    items: [["ESLint", 37.1], ["Postman", 32.6], ["pytest", 28.0, 1], ["Playwright", 24.9]] },
+  qagh: { title: "테스트·품질 도구 GitHub 스타", src: GH, unit: "k",
+    items: [["Playwright", 97.6], ["pytest", 14.6, 1], ["SonarQube", 11.1], ["Evidently", 8.0], ["Kiwi TCMS", 1.3]] },
+  mlpypi: { title: "ML 도구 월간 다운로드", src: PYPI, unit: "만",
+    items: [["MLflow", 1989, 1], ["TensorBoard", 1671], ["W&B", 1451], ["DVC", 163], ["ClearML", 77], ["Aim", 8], ["Label Studio", 2.8]] },
+  mlgh: { title: "ML 도구 GitHub 스타", src: GH, unit: "k",
+    items: [["Label Studio", 28.5], ["MLflow", 28.4, 1], ["DVC", 15.9], ["W&B", 11.3], ["TensorBoard", 7.2], ["ClearML", 6.9], ["Aim", 6.3]] },
+  testpypi: { title: "테스트 화면 도구 월간 다운로드", src: PYPI, unit: "만",
+    items: [["Streamlit", 1937, 1], ["Dash", 638], ["Gradio", 520], ["Panel", 123]] },
+  testgh: { title: "테스트·시각화 도구 GitHub 스타", src: GH, unit: "k",
+    items: [["Grafana", 77.3], ["Streamlit", 46.0, 1], ["Gradio", 43.7], ["Dash", 24.4], ["CesiumJS", 15.8], ["Kepler.gl", 12.0], ["PlotJuggler", 6.2], ["Panel", 5.8]] },
+  aiagent: { title: "코딩 에이전트·어시스턴트 사용률 (지난 1년)", src: SO26 + " · 응답 12,255명", unit: "%",
+    items: [["Claude Code", 65.5, 1], ["GitHub Copilot", 58.7], ["OpenAI Codex", 29.5], ["Cursor", 25.5], ["Google Antigravity", 16.0], ["Gemini Code Assist", 14.6], ["JetBrains AI", 12.8]] },
+  aillm: { title: "업무에 쓴 LLM 회사", src: SO26 + " · 응답 11,895명", unit: "%",
+    items: [["Anthropic (Claude)", 74.6, 1], ["OpenAI (GPT)", 74.3], ["Google (Gemini)", 54.5]] },
+  aiwork: { title: "업무에서 쓰는 AI 종류", src: SO26 + " · 응답 17,464명", unit: "%",
+    items: [["AI 코딩 도구·에이전트", 65.9, 1], ["AI 채팅 (ChatGPT 등)", 62.5], ["AI 에이전트·자동화", 26.2], ["회사 자체 AI 도구", 17.8], ["AI 안 씀", 17.2]] }
+};
+const fmt = (v, u) => u === "%" ? v + "%" : u === "k" ? (v >= 10 ? Math.round(v * 10) / 10 : v) + "k" : (v >= 100 ? Math.round(v).toLocaleString() : v) + "만";
+const statCard = k => { const st = STAT[k]; const max = Math.max(...st.items.map(i => i[1]));
+  return "<div class='stat'><h4>" + esc(st.title) + "</h4><div class='rows'>" +
+    st.items.map(([n, v, h]) => "<div class='srow" + (h ? " hl" : "") + "'><span class='sn'>" + esc(n) + "</span><span class='st'><i style='width:" + Math.max(1.5, v / max * 100) + "%'></i></span><span class='sv'>" + fmt(v, st.unit) + "</span></div>").join("") +
+    "</div><div class='src'>" + esc(st.src) + "</div></div>"; };
+const stats = (...ks) => "<div class='stats'>" + ks.map(statCard).join("") + "</div>";
+const ROLESTAT = { task: ["task", "self"], doc: ["doc", "self"], code: ["code"], qa: ["qa", "qagh"] };
+const vsTable = v => "<div class='price'><h3>" + esc(v.title) + "</h3><div class='tbl'><table class='vs'><thead><tr><th>항목</th>" +
+  v.cols.map((c, i) => "<th" + (i === v.win ? " class='win'" : "") + ">" + esc(c) + (i === v.win ? " <span class='tagw'>추천</span>" : "") + "</th>").join("") + "</tr></thead><tbody>" +
+  v.rows.map(r => "<tr><td class='n'>" + esc(r[0]) + (r[3] ? "<span class='chk'>확인 필요</span>" : "") + "</td><td class='w'>" + esc(r[1]) + "</td><td>" + esc(r[2]) + "</td></tr>").join("") +
+  "</tbody></table></div><div class='pnote'>요금은 2026년 10월 13일 각 공식 요금 페이지 기준.</div></div>";
+const roleStats = id => ROLESTAT[id] ? "<div class='price'><h3>사용률 통계</h3>" + stats(...ROLESTAT[id]) + "</div>" : "";
+
+// ---- 링크 (공식 사이트, 요금제)
+const LINKS = {
+  "일감 관리": { "Jira": ["https://www.atlassian.com/software/jira", "https://www.atlassian.com/software/jira/pricing"], "GitLab 이슈 보드": ["https://docs.gitlab.com/user/project/issue_board/", "https://about.gitlab.com/pricing/"], "Plane": ["https://plane.so/", "https://plane.so/pricing"], "OpenProject": ["https://www.openproject.org/", "https://www.openproject.org/pricing/"], "Redmine": ["https://www.redmine.org/", ""], "Linear": ["https://linear.app/", "https://linear.app/pricing"], "Trello": ["https://trello.com/", "https://trello.com/pricing"], "Asana": ["https://asana.com/", "https://asana.com/pricing"] },
+  "문서 관리": { "Confluence": ["https://www.atlassian.com/software/confluence", "https://www.atlassian.com/software/confluence/pricing"], "Notion": ["https://www.notion.com/", "https://www.notion.com/pricing"], "Outline": ["https://www.getoutline.com/", "https://www.getoutline.com/pricing"], "Docmost": ["https://docmost.com/", "https://docmost.com/pricing"], "GitLab 위키": ["https://docs.gitlab.com/user/project/wiki/", "https://about.gitlab.com/pricing/"], "Wiki.js": ["https://js.wiki/", ""], "BookStack": ["https://www.bookstackapp.com/", ""], "Google Docs": ["https://workspace.google.com/products/docs/", "https://workspace.google.com/pricing"] },
+  "코드 · 이슈 관리": { "GitLab": ["https://about.gitlab.com/", "https://about.gitlab.com/pricing/"], "GitHub": ["https://github.com/", "https://github.com/pricing"], "Gitea": ["https://about.gitea.com/", ""], "Bitbucket": ["https://bitbucket.org/", "https://www.atlassian.com/software/bitbucket/pricing"] },
+  "테스트 · 품질 관리": { "GitLab CI": ["https://docs.gitlab.com/ci/", "https://about.gitlab.com/pricing/"], "pytest": ["https://docs.pytest.org/", ""], "SonarQube": ["https://www.sonarsource.com/products/sonarqube/", "https://www.sonarsource.com/plans-and-pricing/"], "Xray (Jira 앱)": ["https://www.getxray.app/", "https://marketplace.atlassian.com/apps/1211769/xray-test-management-for-jira?hosting=cloud&tab=pricing"], "Zephyr (Jira 앱)": ["https://smartbear.com/test-management/zephyr/", "https://marketplace.atlassian.com/apps/1213259?hosting=cloud&tab=pricing"], "TestRail": ["https://www.testrail.com/", "https://www.testrail.com/pricing/"], "Qase": ["https://qase.io/", "https://qase.io/pricing"], "Kiwi TCMS": ["https://kiwitcms.org/", ""], "Evidently": ["https://www.evidentlyai.com/", "https://www.evidentlyai.com/pricing"], "Playwright": ["https://playwright.dev/", ""] },
+  "ML·DL 협업": { "MLflow": ["https://mlflow.org/", ""], "ClearML": ["https://clear.ml/", "https://clear.ml/pricing"], "W&B (Weights & Biases)": ["https://wandb.ai/", "https://wandb.ai/site/pricing"], "Aim": ["https://github.com/aimhubio/aim", ""], "DVC": ["https://dvc.org/", ""], "TensorBoard": ["https://www.tensorflow.org/tensorboard", ""], "Label Studio": ["https://labelstud.io/", "https://humansignal.com/pricing/"] },
+  "모델 테스트": { "Gradio": ["https://www.gradio.app/", ""], "Streamlit": ["https://streamlit.io/", "https://streamlit.io/cloud"], "Dash (Plotly)": ["https://dash.plotly.com/", ""], "Panel": ["https://panel.holoviz.org/", ""], "Jupyter Notebook": ["https://jupyter.org/", ""], "Kepler.gl": ["https://kepler.gl/", ""], "Foxglove": ["https://foxglove.dev/", "https://foxglove.dev/pricing"], "PlotJuggler": ["https://plotjuggler.io/", ""], "Grafana": ["https://grafana.com/", "https://grafana.com/pricing/"] },
+  "가시화": { "CesiumJS": ["https://cesium.com/platform/cesiumjs/", "https://cesium.com/pricing/"], "deck.gl": ["https://deck.gl/", ""], "Three.js": ["https://threejs.org/", ""], "Mapbox GL JS": ["https://www.mapbox.com/mapbox-gljs", "https://www.mapbox.com/pricing"], "MapLibre GL JS": ["https://maplibre.org/", ""] },
+  "AI": { "Claude": ["https://claude.com/product/claude-code", "https://claude.com/pricing"], "ChatGPT": ["https://chatgpt.com/", "https://chatgpt.com/pricing"], "Gemini": ["https://gemini.google/", "https://gemini.google/subscriptions/"], "GitHub Copilot": ["https://github.com/features/copilot", "https://github.com/features/copilot/plans"], "Atlassian Rovo": ["https://www.atlassian.com/software/rovo", "https://www.atlassian.com/software/confluence/pricing"], "GitLab Duo": ["https://about.gitlab.com/gitlab-duo/", "https://about.gitlab.com/pricing/"], "Notion AI": ["https://www.notion.com/product/ai", "https://www.notion.com/pricing"], "Microsoft 365 Copilot": ["https://www.microsoft.com/microsoft-365/copilot", "https://www.microsoft.com/microsoft-365/copilot"], "Gemini (Workspace)": ["https://workspace.google.com/solutions/ai/", "https://workspace.google.com/pricing"], "Slack AI": ["https://slack.com/features/ai", "https://slack.com/pricing"] },
+  "기타": { "Whisper (음성 → 텍스트)": ["https://github.com/openai/whisper", ""], "Slack": ["https://slack.com/", "https://slack.com/pricing"] }
+};
+const LINK = {}; Object.values(LINKS).forEach(g => Object.assign(LINK, g));
+const ext = (u, t) => "<a href='" + esc(u) + "' target='_blank' rel='noopener'>" + t + " ↗</a>";
+const lnk = n => { const l = LINK[n]; return l ? "<div class='lnk'>" + ext(l[0], "공식 사이트") + (l[1] && l[1] !== "-" ? ext(l[1], "요금제") : "") + "</div>" : ""; };
+const card = t => "<div class='mlc'>" +
+  (t.img ? "<a class='shot' href='" + esc(t.img) + "' target='_blank' rel='noopener'><img loading='lazy' src='" + esc(t.img) + "' alt='" + esc(t.name) + " 화면' onerror=\"this.parentNode.classList.add('err');this.remove()\"><span>사진을 불러오지 못함 (인터넷 필요)</span></a>" : "") +
+  "<div class='body'><h3>" + esc(t.name) + (t.tag ? "<span class='tag'>" + esc(t.tag) + "</span>" : "") + "</h3><div class='meta'>" + esc(t.meta) + "</div>" + list(t.can) +
+  "<div class='ex'><b>이럴 때</b> · " + esc(t.when) + "</div>" + con(t) + lnk(t.name) + "</div></div>";
+
+
+S.forEach(s => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.dataset.id = s.id;
+  b.innerHTML = esc(s.title) + "<small>" + esc(s.hint) + "</small>";
+  b.onclick = () => { location.hash = s.id; };
+  if (s.id === "ml") return; // GPU 학습 결과 관리는 ML·DL 협업 도구 탭에 표시
+  (s.id === "meeting" ? chips2 : chips).appendChild(b);
+});
+
+function show() {
+  const h = location.hash.slice(1);
+  const tab = (h === "ml-tools" || h === "ml") ? "mlsec" : h === "ai-tools" ? "aisec" : h === "test-tools" ? "testsec" : h === "viz-tools" ? "vizsec" : h === "links" ? "linksec" : S.some(x => x.id === h) ? "sit" : "combosec";
+  window.scrollTo(0, 0);
+  document.querySelectorAll(".tab").forEach(t => { t.hidden = t.id !== tab; });
+  document.querySelectorAll("#tabs a").forEach(a => {
+    if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+  if (tab !== "sit") return;
+  const s = S.find(x => x.id === h && x.id !== "ml") || S[0];
+  document.querySelectorAll("#chips .chip, #chips2 .chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.id === s.id));
+  panel.innerHTML = render(s);
+}
+function render(s) {
+  return "<h2>" + esc(s.title) + "</h2><span class='pick'>추천 · " + esc(s.pick) + "</span>" +
+    "<div class='overview'><div class='shots'>" + EXTRA[s.id].shots.map(shot).join("") + "</div>" +
+    "<div class='grid'>" +
+      "<div class='box'><h3>비용 (기본 5명)</h3><div class='cost'>" + esc(s.cost) + "</div><div>" + esc(s.costNote) + "</div></div>" +
+      "<div class='box'><h3>사용 예시</h3>" + list(s.use) + "</div>" +
+      "<div class='box ai'><h3>AI로 할 수 있는 것</h3>" + list(s.ai) + "</div>" +
+      "<div class='box warn'><h3>단점 · 주의</h3>" + list((s.cons || []).concat(s.warn)) + "</div>" +
+    "</div></div>" + (s.vs ? vsTable(s.vs) : "") + priceTable(EXTRA[s.id].price) + roleStats(s.id) + (s.alts ? altCards(s) : "") + (s.alt ? "<div class='alt'>대안: " + esc(s.alt) + "</div>" : "");
+}
+const ML = [
+  { name: "MLflow", con: ["로그인·권한 기능이 기본으로 없음", "화면에서 바로 재학습을 실행하지는 못함"], tag: "제안", meta: "셀프호스팅 · 무료",
+    img: "https://mlflow.org/docs/latest/assets/images/tracking-metrics-ui-temp-ffc0da57b388076730e20207dbd7f9c4.png", cap: "학습 지표(검증 손실) 그래프",
+    can: ["학습마다 파라미터·지표·그래프 자동 기록", "팀원이 같은 화면에서 실행 비교", "모델 레지스트리로 과제별 최고 모델 버전 관리"],
+    ex: "과제를 실험으로 나눠 기록 → 회의 때 비교 화면 공유 → 채택 모델 등록" },
+  { name: "ClearML", con: ["구성 요소가 많아 설치가 복잡", "기능이 많아 처음 배우는 데 시간이 걸림"], meta: "셀프호스팅 무료 · 클라우드 Pro 1인 월 $15",
+    img: "https://github.com/clearml/clearml/raw/master/docs/experiment_manager.gif?raw=true", cap: "실험 관리 화면",
+    can: ["실험 기록·비교 + 화면에서 복제해 재학습", "GPU 작업 대기열: 팀원 학습 순서 관리", "데이터셋 버전 관리, 파이프라인"],
+    ex: "팀원이 파라미터만 바꿔 대기열에 넣으면 GPU 서버가 순서대로 학습" },
+  { name: "W&B (Weights & Biases)", con: ["데이터가 외부 클라우드에 저장됨", "팀 요금이 비싸고 사내 설치는 Enterprise만"], meta: "클라우드 · Free 5명, Pro 월 $60부터",
+    img: "https://mintcdn.com/coreweave-dbfa0e8d/3Dv_sw2eg8feUJlx/products/wandb/_media/experiments_landing_page.png?fit=max&auto=format&n=3Dv_sw2eg8feUJlx&q=85&s=b705bd9ebe6cd3c71dcb4af3c539761f", cap: "실험 대시보드",
+    can: ["가장 보기 좋은 실험 대시보드", "리포트: 그래프+설명을 문서로 만들어 링크 공유", "하이퍼파라미터 탐색(Sweeps)"],
+    ex: "주간 회의용 리포트를 만들어 링크 하나로 공유 (외부 저장 허용 시)" },
+  { name: "Aim", con: ["모델 레지스트리 등 모델 관리 기능이 약함", "업데이트가 이전보다 뜸함"], meta: "셀프호스팅 · 무료 (오픈소스)",
+    img: "https://user-images.githubusercontent.com/13848158/136374529-af267918-5dc6-4a4e-8ed2-f6333a332f96.gif", cap: "실행 비교 화면",
+    can: ["수백 개 실행을 빠르게 겹쳐 비교", "설치가 가장 간단", "MLflow 기록도 Aim 화면으로 볼 수 있음"],
+    ex: "MLflow는 그대로 두고, 비교 화면만 Aim으로 보기" },
+  { name: "DVC", con: ["Git 명령에 익숙해야 함", "실험 비교 화면은 다른 도구보다 약함"], meta: "Git 저장소 · 무료",
+    img: "https://raw.githubusercontent.com/treeverse/vscode-dvc/main/extension/docs/overview.gif", cap: "VS Code 확장: 실험 표·그래프",
+    can: ["데이터셋·모델 버전을 Git처럼 관리", "실험 결과를 GitLab 커밋·MR로 공유", "VS Code에서 실험 표와 그래프"],
+    ex: "항적 데이터셋 v1·v2를 GitLab에 기록 → 어떤 데이터로 학습했는지 추적" },
+  { name: "TensorBoard", con: ["팀 공유·권한 기능이 없음", "실행이 많아지면 비교가 어려움"], meta: "GPU 서버 · 무료",
+    img: "https://github.com/tensorflow/tensorboard/blob/master/docs/images/quickstart_model_fit.png?raw=1", cap: "학습 곡선(Scalars)",
+    can: ["학습 중 손실·정확도 실시간 그래프", "가장 간단, PyTorch에서도 사용"],
+    ex: "학습 중 혼자 빠르게 확인. 팀 공유·비교는 약함" },
+  { name: "Label Studio", con: ["팀 권한·검수 고급 기능은 유료", "영상 대량 라벨링은 속도가 느릴 수 있음"], meta: "셀프호스팅 무료 · 유료 Enterprise",
+    img: "https://github.com/HumanSignal/label-studio/raw/develop/images/annotation_examples.gif", cap: "여러 데이터 라벨링",
+    can: ["이미지·영상·시계열·텍스트 라벨링", "팀원별 작업 배분, 검수", "결과를 학습 데이터셋으로 내보내기"],
+    ex: "객체 영상 라벨링을 팀원이 나눠 작업 → 학습 DB로" }
+];
+document.getElementById("mlcards").innerHTML = ML.map(t =>
+  "<div class='mlc'><a class='shot' href='" + esc(t.img) + "' target='_blank' rel='noopener'>" +
+  "<img loading='lazy' src='" + esc(t.img) + "' alt='" + esc(t.name + " " + t.cap) + "' onerror=\"this.parentNode.classList.add('err');this.remove()\">" +
+  "<span>사진을 불러오지 못함 (인터넷 필요)</span></a>" +
+  "<div class='body'><h3>" + esc(t.name) + (t.tag ? "<span class='tag'>" + esc(t.tag) + "</span>" : "") + "</h3>" +
+  "<div class='meta'>" + esc(t.meta) + " · 사진: " + esc(t.cap) + "</div>" + list(t.can) +
+  "<div class='ex'><b>우리 팀 예시</b> · " + esc(t.ex) + "</div>" + con(t) + lnk(t.name) + "</div></div>"
+).join("");
+
+document.getElementById("mlpanel").innerHTML = render(S.find(x => x.id === "ml"));
+
+// 역할별 도구 선택지 (krw: 5명 월 비용, self: 셀프호스팅, cloud: 외부 클라우드, chk: 요금 확인 필요)
+const TOOLS = {
+  task: [
+    { id: "jira-free", limit: 10, con: "저장 2GB, 권한 기능 제한", name: "Jira Free", krw: 0, cloud: 1, note: "무료 10명·저장 2GB까지" },
+    { id: "jira-std", price: { m: { per: 7.91 }, y: { year: 900, max: 10 } }, pnote: { m: "1인 월 $7.91", y: "연 $900 정액 (10명까지)" }, con: "인원마다 요금, 설정 복잡", name: "Jira Standard", krw: 0, cloud: 1 },
+    { id: "gl-issue", con: "일정·간트 기능 약함", name: "GitLab 이슈 보드", krw: 0, note: "GitLab" },
+    { id: "plane", con: "직접 설치·백업", name: "Plane (셀프호스팅)", krw: 0, self: 1 },
+    { id: "openproject", con: "무겁고 배우기 어려움", name: "OpenProject (셀프호스팅)", krw: 0, self: 1 },
+    { id: "redmine", con: "화면이 오래됨", name: "Redmine (셀프호스팅)", krw: 0, self: 1 },
+    { id: "trello", limit: 10, con: "일감 많으면 관리 어려움", name: "Trello Free", krw: 0, cloud: 1, note: "무료 10명·보드 10개까지" },
+    { id: "linear", con: "프로젝트 관리 기능 약함", name: "Linear Free", krw: 0, cloud: 1, note: "무료: 이슈 250개·팀 2개까지" },
+    { id: "asana", limit: 2, con: "코드 연동 약함", name: "Asana Free", krw: 0, cloud: 1, note: "무료 2명까지" }
+  ],
+  doc: [
+    { id: "conf-free", limit: 10, con: "저장 2GB", name: "Confluence Free", krw: 0, cloud: 1, note: "무료 10명·저장 2GB까지" },
+    { id: "conf-std", price: { m: { per: 5.42 }, y: { year: 680, max: 10 } }, pnote: { m: "1인 월 $5.42", y: "연 $680 정액 (10명까지)" }, con: "인원마다 요금", name: "Confluence Standard", krw: 0, cloud: 1 },
+    { id: "gl-wiki", con: "편집·검색 불편", name: "GitLab 위키", krw: 0, note: "GitLab" },
+    { id: "outline", con: "직접 설치·SSO 설정", name: "Outline (셀프호스팅)", krw: 0, self: 1 },
+    { id: "docmost", con: "검증 사례 적음", name: "Docmost (셀프호스팅)", krw: 0, self: 1 },
+    { id: "wikijs", con: "실시간 공동 편집 약함", name: "Wiki.js (셀프호스팅)", krw: 0, self: 1 },
+    { id: "bookstack", con: "구조 자유도 낮음", name: "BookStack (셀프호스팅)", krw: 0, self: 1 },
+    { id: "notion-free", con: "팀 기능 제한", name: "Notion Free", krw: 0, cloud: 1, note: "개인용 · 여러 명이면 블록 수 제한" },
+    { id: "notion-plus", price: { m: { perKrw: 16800 }, y: { perKrw: 14000 } }, pnote: { m: "1인 월 ₩16,800", y: "1인 월 ₩14,000 (연간)" }, con: "문서 많으면 느림", name: "Notion Plus", krw: 0, cloud: 1 },
+    { id: "gdocs", price: { m: { per: 8.4 }, y: { per: 7 } }, pnote: { m: "Business Starter 1인 월 $8.40", y: "Business Starter 1인 월 $7 (1년 약정)" }, con: "문서가 흩어지기 쉬움", name: "Google Docs (Workspace)", krw: 0, cloud: 1 }
+  ],
+  code: [
+    { id: "gitlab", con: "일감·문서 화면은 불편", name: "GitLab", krw: 0, note: "지금 요금제 그대로" },
+    { id: "github", con: "이전 작업 필요", name: "GitHub Free", krw: 0, cloud: 1, note: "비공개 저장소 무제한, Actions 월 2,000분" },
+    { id: "gitea", con: "기능 적음, 직접 관리", name: "Gitea (셀프호스팅)", krw: 0, self: 1 },
+    { id: "bitbucket", limit: 5, con: "이전 작업 필요", name: "Bitbucket Free", krw: 0, cloud: 1, note: "5명까지 무료" }
+  ],
+  qa: [
+    { id: "gl-ci", con: "수동 테스트 기록은 약함", name: "GitLab CI + pytest", krw: 0, note: "GitLab" },
+    { id: "gl-sonar", con: "서버 추가·설정 필요", name: "GitLab CI + SonarQube (셀프호스팅)", krw: 0, self: 1 },
+    { id: "kiwi", con: "자료 적음, 화면 단순", name: "Kiwi TCMS (셀프호스팅)", krw: 0, self: 1 },
+    { id: "xray", price: { m: { flat: 10, max: 10 }, y: { year: 100, max: 10 } }, pnote: { m: "10명까지 월 $10 정액", y: "10명까지 연 $100 정액" }, con: "Jira 필수, 별도 요금", name: "Xray (Jira 앱)", krw: 0, cloud: 1 },
+    { id: "zephyr", price: { m: { flat: 10, max: 10 }, y: { year: 100, max: 10 } }, pnote: { m: "10명까지 월 $10 정액", y: "10명까지 연 $100 정액" }, con: "Jira 필수, 별도 요금", name: "Zephyr (Jira 앱)", krw: 0, cloud: 1 },
+    { id: "testrail", price: { m: null, y: { tiers: [[5, 22], [1e9, 38]] } }, pnote: { m: "월 결제 가격은 공개되지 않음", y: "1인 월 $22 (5명까지) · $38 (연간)" }, con: "1인 요금이 비싼 편", name: "TestRail", krw: 0, cloud: 1 },
+    { id: "qase", limit: 4, con: "무료판 인원·기능 제한", name: "Qase Free", krw: 0, cloud: 1, note: "무료 4명·프로젝트 2개까지" }
+  ]
+};
+const CRIT = [
+  { id: "free", title: "무료", hint: "0원으로 시작", pick: { task: "jira-free", doc: "conf-free", code: "gitlab", qa: "gl-ci" },
+    why: "모두 무료판. 큰 파일은 NAS·Drive에 두고 링크만 남겨 2GB 안에서 사용" },
+  { id: "min", title: "최소 비용", hint: "꼭 필요한 곳만 유료", pick: { task: "jira-free", doc: "conf-std", code: "gitlab", qa: "gl-ci" },
+    why: "첨부가 몰리는 문서(Confluence)만 유료로 올려 용량 확보" },
+  { id: "eff", title: "효율성", hint: "관리 부담 없이 편하게", pick: { task: "jira-std", doc: "conf-std", code: "gitlab", qa: "xray" },
+    why: "서버 관리 없음. Jira·Confluence 연동, 넉넉한 용량, 세부 권한" },
+  { id: "secure", title: "사내 보관", hint: "보안 규정이 엄격할 때", pick: { task: "plane", doc: "outline", code: "gitlab", qa: "gl-sonar" },
+    why: "모든 데이터가 사내 서버에. 대신 설치·백업 담당자 필요" },
+  { id: "easy", title: "쉬운 사용", hint: "비개발자도 함께", pick: { task: "trello", doc: "notion-plus", code: "gitlab", qa: "qase" },
+    why: "배우지 않아도 바로 쓰는 화면 위주" },
+  { id: "one", title: "도구 하나로", hint: "GitLab에 모두 모으기", pick: { task: "gl-issue", doc: "gl-wiki", code: "gitlab", qa: "gl-ci" },
+    why: "일감·문서·코드를 GitLab 한곳에서. 추가 비용 없음" }
+];
+let bill = "m"; // m: 월 결제, y: 연 결제
+function toolCost(t, n, b) {
+  b = b || bill;
+  const pr = t.price ? t.price[b] : t;
+  if (!pr) return null;
+  if (pr.max && n > pr.max) return null;
+  if (pr.year) return Math.round(pr.year * 1400 / 12);
+  if (pr.flat) return Math.round(pr.flat * 1400);
+  if (pr.tiers) { const tier = pr.tiers.find(([max]) => n <= max); return Math.round(tier[1] * n * 1400); }
+  if (pr.perKrw) return pr.perKrw * n;
+  return Math.round((pr.per || 0) * n * 1400);
+}
+const noteOf = t => t.pnote ? t.pnote[bill] : t.note;
+const ROLES = [["task", "일감 관리"], ["doc", "문서 관리"], ["code", "코드 · 이슈"], ["qa", "테스트 · 품질"]];
+const sel = {}; let critId = "eff";
+const won = n => n === 0 ? "0원" : "약 " + (Math.round(n / 1000) / 10) + "만 원";
+ROLES.forEach(([r]) => {
+  sel[r] = document.getElementById("sel-" + r);
+  sel[r].innerHTML = TOOLS[r].map(t => "<option value='" + t.id + "'>" + esc(t.name) + "</option>").join("");
+  sel[r].onchange = () => { critId = null; drawFinal(); };
+});
+const crit = document.getElementById("crit");
+CRIT.forEach(c => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.dataset.crit = c.id;
+  b.innerHTML = esc(c.title) + "<small>" + esc(c.hint) + "</small>";
+  b.onclick = () => { critId = c.id; ROLES.forEach(([r]) => { sel[r].value = c.pick[r]; }); drawFinal(); };
+  crit.appendChild(b);
+});
+function drawFinal() {
+  crit.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", b.dataset.crit === critId));
+  const c = CRIT.find(x => x.id === critId);
+  const notes = [];
+  const n = Math.max(1, parseInt(document.getElementById("people").value) || 5);
+  const cost = t => toolCost(t, n) || 0;
+  const picked = ROLES.map(([r, label]) => [label, TOOLS[r].find(t => t.id === sel[r].value)]);
+  const total = picked.reduce((a, [, t]) => a + cost(t), 0);
+  if (picked.some(([, t]) => toolCost(t, n) === null)) notes.unshift("'요금 확인' 도구는 " + n + "명·" + (bill === "y" ? "연 결제" : "월 결제") + " 요금이 공개되지 않아 합계에서 빠짐: 공식 요금 페이지에서 확인");
+  picked.forEach(([, t]) => { const a = toolCost(t, n, "m"), b2 = toolCost(t, n, "y");
+    if (a !== null && b2 !== null && a !== b2) notes.push(t.name + ": 월 결제 " + won(a) + " / 연 결제 월 환산 " + won(b2) + (b2 > a ? " → " + n + "명이면 월 결제가 더 쌈 (연 결제는 10명 정액)" : " → 연 결제가 더 쌈")); });
+  picked.forEach(([, t]) => { if (t.limit && n > t.limit) notes.push(t.name + "는 무료가 " + t.limit + "명까지 → " + n + "명이면 유료 요금제로 바꿔야 함"); });
+  if (picked.some(([, t]) => t.self)) notes.push("셀프호스팅 포함: 서버 월 0~2만 원 추가, 설치·업데이트·백업 담당자 필요");
+  if (picked.some(([, t]) => t.cloud)) notes.push("외부 클라우드에 저장되는 도구 포함: 보안 규정 확인");
+  if (picked.some(([, t]) => /Free/.test(t.name) && /Jira|Confluence/.test(t.name))) notes.push("Jira·Confluence Free는 제품별 2GB: 큰 파일은 NAS·Drive 링크로");
+  if (sel.task.value === "gl-issue" || sel.doc.value === "gl-wiki") notes.push("GitLab에 모으면 비개발자에게는 화면이 낯설 수 있음");
+  if (n > 5 && sel.code.value === "gitlab") notes.push("GitLab.com 무료판을 쓰고 있다면 비공개 그룹은 5명까지 (셀프호스팅이면 제한 없음)");
+  if (sel.task.value !== "gl-issue") notes.push("일감 도구와 GitLab 이슈의 역할 구분: 업무 일감 / 코드 작업");
+  if (picked.some(([, t]) => t.chk)) notes.push("'확인 필요' 표시 도구는 요금·무료 범위를 공식 페이지에서 확인");
+  document.getElementById("final").innerHTML =
+    "<h3>최종 조합 · " + (c ? esc(c.title) : "직접 선택") + "</h3><div class='why'>" + (c ? esc(c.why) : "역할별로 직접 고른 조합") + "</div>" +
+    "<div class='fgrid'><div class='ftbl'><table><tbody>" + picked.map(([label, t]) => "<tr><td class='r'>" + label + "</td><td><b>" + esc(t.name) + "</b>" + (t.chk ? "<span class='chk'>확인 필요</span>" : "") +
+      (noteOf(t) ? " <span style='color:var(--muted);font-size:12.5px'>" + esc(noteOf(t)) + "</span>" : "") + (t.con ? "<div style='color:var(--warn);font-size:12.5px'>단점: " + esc(t.con) + "</div>" : "") + "</td><td class='c'>" + (toolCost(t, n) === null ? "요금 확인" : won(cost(t))) + "</td></tr>").join("") + "</tbody></table></div><div class='fside'>" +
+    "<div class='sum'><span>" + n + "명 · " + (bill === "y" ? "연 결제 월 환산" : "월 결제") + " <b>" + won(total) + "</b></span><span>3년 <b>" + (total ? "약 " + Math.round(total * 36 / 10000) + "만 원" : "0원") + "</b></span></div>" +
+    "<div class='fnotes'><b>확인할 점</b><ul>" + notes.map(n => "<li>" + esc(n) + "</li>").join("") + "</ul></div></div></div>";
+  drawCompare(n);
+}
+// 기준별 조합 비교표 (현재 인원 기준)
+function drawCompare(n) {
+  const rows = CRIT.map(c => {
+    const ts = ROLES.map(([r]) => TOOLS[r].find(t => t.id === c.pick[r]));
+    const total = ts.reduce((a, t) => a + (toolCost(t, n) || 0), 0);
+    const over = ts.filter(t => t.limit && n > t.limit).map(t => t.name);
+    const care = [];
+    if (over.length) care.push(over.join(", ") + " 무료 인원 초과");
+    if (ts.some(t => t.self)) care.push("서버·관리 담당자 필요");
+    if (ts.some(t => t.cloud)) care.push("외부 저장 → 보안 규정 확인");
+    return { c, ts, total, care };
+  });
+  const max = Math.max(1, ...rows.map(r => r.total));
+  document.getElementById("cmp").innerHTML =
+    "<thead><tr><th>기준</th><th>일감 관리</th><th>문서 관리</th><th>코드 · 이슈</th><th>테스트 · 품질</th><th style='min-width:220px'>" + n + "명 " + (bill === "y" ? "연 결제 월 환산" : "월 결제") + "</th><th>3년</th><th>특징</th><th>주의</th></tr></thead><tbody>" +
+    rows.map(r => "<tr data-crit='" + r.c.id + "'" + (r.c.id === critId ? " class='on'" : "") + "><td class='n'>" + esc(r.c.title) + "</td>" +
+      r.ts.map(t => "<td>" + esc(t.name) + "</td>").join("") +
+      "<td><div class='bar'><i><span style='width:" + Math.max(2, Math.round(r.total / max * 100)) + "%'></span></i><em>" + won(r.total) + (r.ts.some(t => toolCost(t, n) === null) ? " + α" : "") + "</em></div></td>" +
+      "<td class='nw'>" + (r.total ? "약 " + Math.round(r.total * 36 / 10000) + "만 원" : "0원") + "</td>" +
+      "<td>" + esc(r.c.why) + "</td><td class='care'>" + esc(r.care.join(" · ") || "-") + "</td></tr>").join("") + "</tbody>";
+  document.querySelectorAll("#cmp tbody tr").forEach(tr => tr.onclick = () => {
+    const c = CRIT.find(x => x.id === tr.dataset.crit);
+    critId = c.id; ROLES.forEach(([r]) => { sel[r].value = c.pick[r]; }); drawFinal();
+    document.getElementById("final").scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}
+document.getElementById("people").oninput = () => drawFinal();
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+  bill = b.dataset.bill;
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  drawFinal();
+});
+ROLES.forEach(([r]) => { sel[r].value = CRIT.find(x => x.id === critId).pick[r]; });
+drawFinal();
+
+const TEST1 = [
+  { name: "Gradio", tag: "빠른 시작", meta: "무료 (오픈소스) · Python", img: "https://github.com/gradio-app/gradio/raw/main/demo/hello_world_4/screenshot.gif",
+    can: ["코드 몇 줄로 \"입력 → 실행 → 결과\" 화면", "MLflow 레지스트리의 최고 모델을 자동으로 불러옴", "피드백(좋음/나쁨) 버튼"], when: "학습 직후 모델을 빠르게 써 볼 때",
+    con: ["화면 구성 자유도가 낮음", "지도·대시보드 같은 복잡한 화면엔 부족"] },
+  { name: "Streamlit", tag: "항적에 추천", meta: "무료 (오픈소스) · 클라우드 배포 무료 플랜", img: "https://user-images.githubusercontent.com/7164864/215172915-cf087c56-e7ae-449a-83a4-b5fa0328d954.gif",
+    can: ["지도·표·그래프를 섞은 대시보드", "지도 라이브러리 연동이 쉬움", "여러 화면을 탭으로 구성"], when: "실제·예측 항적을 지도에서 비교할 때",
+    con: ["버튼을 누를 때마다 전체를 다시 실행해 느릴 수 있음", "동시 사용자가 많으면 무거움"] },
+  { name: "Dash (Plotly)", meta: "무료 (오픈소스) · 유료 Enterprise", img: "https://user-images.githubusercontent.com/1280389/30086128-9bb4a28e-9267-11e7-8fe4-bbac7d53f2b0.gif",
+    can: ["그래프·지도 상호작용이 가장 강함", "시간 슬라이더로 항적 재생"], when: "복잡한 분석 화면이 필요할 때",
+    con: ["코드가 길어지고 배우는 데 시간이 걸림", "간단한 테스트엔 과함"] },
+  { name: "Panel", meta: "무료 (오픈소스)",
+    can: ["큰 데이터를 다루는 분석 대시보드", "Jupyter에서 만든 그래프를 그대로 화면으로"], when: "대용량 데이터 분석 화면이 필요할 때",
+    con: ["자료·사용자가 Streamlit보다 적음", "화면 디자인이 투박함"] },
+  { name: "Jupyter Notebook", meta: "무료 (오픈소스)",
+    can: ["코드와 결과(그래프)를 같이 보며 실험", "가장 익숙한 개발 도구"], when: "개발자 혼자 결과를 확인할 때",
+    con: ["비개발자가 쓰기 어려움", "팀 공유·버전 관리가 불편"] }
+];
+const TEST2 = [
+  { name: "Kepler.gl", meta: "무료 (오픈소스)", img: "https://github.com/keplergl/kepler.gl/raw/master/screenshots/screenshot.png",
+    can: ["대용량 위치 데이터를 지도에 그리기", "시간 순 재생, 항적 여러 개 비교"], when: "데이터 분석 단계에서 항적을 한눈에 볼 때",
+    con: ["모델 실행과 연결하려면 별도 개발 필요", "지도 배경은 외부 서비스(인터넷 필요)"] },
+  { name: "Foxglove", meta: "무료 플랜 · 팀 유료",
+    can: ["로봇 전용: 지도, 3D, 센서 그래프를 시간축으로 맞춰 재생", "ROS 데이터 지원"], when: "센서 데이터까지 같이 볼 때",
+    con: ["팀 기능은 유료", "ROS 형식이 아니면 데이터 변환 필요"] },
+  { name: "PlotJuggler", meta: "무료 (오픈소스) · PC 프로그램", img: "https://github.com/PlotJuggler/PlotJuggler/raw/main-4.x/docs/images/workspace.jpg",
+    can: ["비행 로그 같은 시계열을 빠르게 그래프로", "데이터가 많아도 가볍게 동작"], when: "비행 로그·센서 값을 빠르게 확인할 때",
+    con: ["지도 표시가 약함", "웹이 아니라 PC 프로그램이라 공유가 불편"] },
+  { name: "Grafana", meta: "셀프호스팅 무료 · 클라우드 무료 플랜부터",
+    can: ["실시간 모니터링 대시보드", "알림 설정"], when: "실시간 운용 상태를 계속 볼 때",
+    con: ["모델 테스트용 입력 화면은 없음", "지도·3D 항적 표현은 제한적"] }
+];
+const VIZ1 = [
+  { name: "CesiumJS", tag: "3D 항적 추천", meta: "무료 (오픈소스) · 지도 데이터(Cesium ion)는 무료 플랜부터", img: "https://images.prismic.io/cesium/89797e97-78c1-4fbc-a3e0-5854973f009f_terrain.jpg",
+    can: ["3D 지구본·지형 위에 고도까지 포함한 항적", "타임라인으로 시간 순 재생", "3D Tiles로 건물·지형 표현"], when: "최종 시연 (3D 지도, 고도 표현)",
+    con: ["직접 웹 개발이 필요", "고품질 지도 데이터는 유료일 수 있음"] },
+  { name: "deck.gl", tag: "항적 재생", meta: "무료 (오픈소스)", img: "https://raw.githubusercontent.com/visgl/deck.gl-data/master/images/whats-new/trips-layer.gif",
+    can: ["수십만 개 점·선을 GPU로 빠르게 그림", "TripsLayer로 항적 애니메이션", "Mapbox·MapLibre 지도 위에 겹쳐 그리기"], when: "대용량 항적을 지도 위에서 재생·비교할 때",
+    con: ["지도 배경은 따로 필요", "React와 같이 쓰면 편하지만 배우는 시간 필요"] },
+  { name: "Three.js", meta: "무료 (오픈소스)", img: "https://threejs.org/files/share.png",
+    can: ["3D 모델, 레이더·센서 탐지 범위를 3D로", "카메라·조명까지 자유로운 3D 장면"], when: "지도 없이 3D 시뮬레이터 화면을 만들 때",
+    con: ["지도·좌표 기능이 없어 직접 구현", "3D 그래픽 지식 필요"] },
+  { name: "Mapbox GL JS", meta: "무료 사용량 이후 지도 로드 수만큼 유료", img: "https://static-assets.mapbox.com/images/mapbox-gl-js-gallery.png",
+    can: ["고품질 지도·위성 배경", "3D 지형·건물, 지도 스타일 꾸미기"], when: "보기 좋은 지도 배경이 중요할 때",
+    con: ["액세스 토큰 필요, 사용량 과금", "인터넷 필요 (내부망 사용 어려움)"] },
+  { name: "MapLibre GL JS", tag: "내부망 가능", meta: "무료 (오픈소스)", img: "https://maplibre.org/maplibre-gl-js/docs/assets/examples/3d-terrain.png",
+    can: ["Mapbox GL과 거의 같은 사용법의 오픈소스 지도", "지도 서버를 직접 두면 오프라인에서도 동작", "3D 지형, deck.gl과 함께 사용"], when: "비용·라이선스 걱정 없이, 내부망에서 지도를 쓸 때",
+    con: ["지도 데이터(타일)를 직접 준비해야 함", "위성 지도는 별도 데이터 필요"] }
+];
+const AI1 = [
+  { name: "Claude", meta: "개인 무료 · Pro·Max·Team 등 유료",
+    can: ["Claude Code로 코드 수정·스크립트 실행", "커넥터로 Jira·Confluence·GitLab·Slack 연결", "회의록 요약, 보고서·정리 페이지 작성"], when: "여러 협업 도구를 한 번에 연결해 일을 시킬 때",
+    con: ["커넥터·스크립트 처음 설정이 필요", "사용량이 많으면 상위 요금제 필요"] },
+  { name: "ChatGPT", meta: "개인 무료 · Plus·Business 등 유료",
+    can: ["대화형 질의, 문서 초안, 파일·데이터 분석", "Codex로 코드 작업", "커넥터로 Drive 등 연결"], when: "범용 질의응답·문서 작성이 많을 때",
+    con: ["Jira·GitLab 연동은 요금제·설정에 따라 제한", "회사 데이터 학습 제외 설정 확인 필요"] },
+  { name: "Gemini", meta: "개인 무료 · Google AI 요금제 유료",
+    can: ["Gmail·Docs·Drive·Meet과 바로 연동", "Gemini CLI로 코드 작업", "긴 문서·영상 분석"], when: "Google Workspace를 쓰는 팀",
+    con: ["Google 밖 도구 연동은 약함", "요금제별 기능 차이가 복잡"] },
+  { name: "GitHub Copilot", meta: "무료 플랜 · 개인·기업 유료",
+    can: ["VS Code 등에서 코드 자동 완성·채팅", "코드 설명·테스트 작성"], when: "개발자 코딩 보조가 주 목적일 때",
+    con: ["GitHub 중심이라 GitLab 연동은 제한적", "일감·문서 작업은 범위 밖"] }
+];
+const AI2 = [
+  { name: "Atlassian Rovo", meta: "Jira·Confluence 유료 요금제에 포함·추가",
+    can: ["Jira·Confluence 문서 검색·요약", "페이지에서 Jira 일감 생성"], when: "Jira·Confluence를 쓰는 팀", con: ["Atlassian 밖 도구 연동은 제한", "Free 요금제에선 쓸 수 없거나 제한"] },
+  { name: "GitLab Duo", meta: "GitLab 유료 추가 기능",
+    can: ["MR 요약, 코드 리뷰", "이슈·토론 요약"], when: "GitLab에서 코드 리뷰를 자동화할 때", con: ["별도 유료", "GitLab 안에서만 동작"] },
+  { name: "Notion AI", meta: "Notion Business 이상",
+    can: ["회의 녹음 → 요약·할 일", "워크스페이스 문서 Q&A"], when: "Notion을 쓰는 팀", con: ["Notion 안에서만", "상위 요금제 필요"] },
+  { name: "Microsoft 365 Copilot", meta: "M365에 1인당 추가 요금",
+    can: ["Teams 회의 요약", "Word·Excel·PowerPoint 초안"], when: "Microsoft 365를 쓰는 팀", con: ["1인당 요금이 비쌈", "Jira·GitLab 연동은 약함"] },
+  { name: "Gemini (Workspace)", meta: "Google Workspace 요금제에 포함",
+    can: ["Meet 회의록 자동 작성", "Docs·Gmail 초안"], when: "Google Workspace를 쓰는 팀", con: ["Google Workspace 사용 전제", "외부 도구 연동은 약함"] },
+  { name: "Slack AI", meta: "Slack 유료 요금제·추가",
+    can: ["채널·스레드 요약", "대화 검색"], when: "Slack 대화가 많은 팀", con: ["별도 유료", "Slack 대화만 대상"] }
+];
+[["test1", TEST1], ["test2", TEST2], ["viz1", VIZ1], ["ai1", AI1], ["ai2", AI2]].forEach(([id, a]) => { document.getElementById(id).innerHTML = a.map(card).join(""); });
+document.getElementById("linklist").innerHTML = Object.entries(LINKS).map(([g, items]) =>
+  "<h3>" + esc(g) + "</h3><div class='tbl'><table><thead><tr><th>서비스</th><th>공식 사이트</th><th>요금제</th></tr></thead><tbody>" +
+  Object.entries(items).map(([n, [u, pr]]) => "<tr><td>" + esc(n) + "</td><td>" + ext(u, "열기") + "</td><td>" + (pr === "-" ? "<span style='color:var(--muted)'>공식 사이트에서 확인</span>" : pr ? ext(pr, "요금제 보기") : "<span style='color:var(--muted)'>무료 (오픈소스)</span>") + "</td></tr>").join("") +
+  "</tbody></table></div>").join("");
+document.getElementById("st-combo").innerHTML = stats("task", "doc", "code", "self");
+document.getElementById("st-ml").innerHTML = stats("mlpypi", "mlgh");
+document.getElementById("st-test").innerHTML = stats("testpypi", "testgh");
+document.getElementById("st-ai").innerHTML = stats("aiagent", "aillm", "aiwork");
+
+// ---- 출력하기: 보고용 머리말을 채우고 인쇄 창 (PDF로 저장 선택)
+document.getElementById("printBtn").onclick = () => {
+  const n = Math.max(1, parseInt(document.getElementById("people").value) || 5);
+  const c = CRIT.find(x => x.id === critId);
+  const d = new Date();
+  const ymd = d.getFullYear() + "년 " + (d.getMonth() + 1) + "월 " + d.getDate() + "일";
+  const picked = ROLES.map(([r, label]) => label + ": " + TOOLS[r].find(t => t.id === sel[r].value).name);
+  document.getElementById("printHead").innerHTML =
+    "<div class='ph-top'><div><div class='ph-kicker'>보고 자료</div><h1>협업 도구 도입 조합 검토</h1></div>" +
+    "<div class='ph-meta'>작성일 " + ymd + "<br>인원 " + n + "명 · " + (bill === "y" ? "연 결제" : "월 결제") + "<br>원화 1달러 = 1,400원, 부가세 별도</div></div>" +
+    "<div class='ph-sum'><b>제안 조합 (" + (c ? esc(c.title) : "직접 선택") + ")</b> · " + picked.map(esc).join(" · ") + "</div>";
+  const root = document.documentElement, prev = root.getAttribute("data-theme");
+  root.setAttribute("data-theme", "light");
+  const done = () => { if (prev === null) root.removeAttribute("data-theme"); else root.setAttribute("data-theme", prev); window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
+  window.print();
+};
+window.addEventListener("hashchange", show);
+show();
+</script>
+</body>
+</html>
